@@ -535,12 +535,14 @@ function parseConnectionLink(inputStr) {
     const u = params.get("u") || params.get("slot") || params.get("userSlot");
     const t = params.get("t") || params.get("token");
     const user = params.get("user") || params.get("userName");
+    const lang = params.get("lang") || params.get("l");
 
     if (r) result.roomId = r.trim();
     if (k) result.key = k.trim().replace(/\s/g, "+");
     if (t) result.token = t.trim();
     if (u) result.slot = parseInt(u, 10);
     if (user) result.user = user.trim();
+    if (lang) result.lang = lang.trim().toLowerCase();
     return result;
   }
 
@@ -845,12 +847,16 @@ function handleShortcutRead(req, res, returnUnifiedObject = false) {
     }
 
     // Second pass: format display names cleanly (Never display English "Partner" or "Creator")
+    const langQuery = req.body?.lang || req.query?.lang || linkParsed.lang;
+    const acceptLang = req.headers["accept-language"] || "";
+    const isEn = langQuery ? langQuery.toLowerCase().startsWith("en") : (!acceptLang.startsWith("zh") && acceptLang.toLowerCase().includes("en"));
+
     for (const item of rawParsedList) {
       if (!item.ok) {
         decryptedMessages.push({
           id: item.row.id,
-          user: "未知",
-          text: "[加密訊息 - 金鑰不相符]",
+          user: isEn ? "Unknown" : "未知",
+          text: isEn ? "[Encrypted Message - Key mismatch]" : "[加密訊息 - 金鑰不相符]",
           timestamp: item.row.timestamp,
         });
         continue;
@@ -875,7 +881,9 @@ function handleShortcutRead(req, res, returnUnifiedObject = false) {
       } else {
         const peerSlot = slotNum === 1 ? 2 : 1;
         const knownPeerNick = peerSlot === 1 ? slot1Name : slot2Name;
-        displayName = isSelf ? (readerNameTrimmed || "我") : (knownPeerNick || "對方");
+        const defaultSelf = isEn ? "Me" : "我";
+        const defaultPeer = isEn ? "Partner" : "對方";
+        displayName = isSelf ? (readerNameTrimmed || defaultSelf) : (knownPeerNick || defaultPeer);
       }
 
       decryptedMessages.push({
@@ -891,12 +899,12 @@ function handleShortcutRead(req, res, returnUnifiedObject = false) {
 
     // Generate formatted single-string display for easy iOS Shortcut popup
     const formattedLines = decryptedMessages.map(m => {
-      const time = new Date(m.timestamp).toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit", hour12: false });
+      const time = new Date(m.timestamp).toLocaleTimeString(isEn ? "en-US" : "zh-TW", { hour: "2-digit", minute: "2-digit", hour12: false });
       return `💬 [${time}] ${m.user}: ${m.text}`;
     });
     const formattedText = formattedLines.length > 0
       ? formattedLines.join("\n")
-      : "📭 目前尚無任何訊息";
+      : (isEn ? "📭 No messages yet" : "📭 目前尚無任何訊息");
 
     if (returnUnifiedObject || req.query.format === "object" || req.body?.format === "object") {
       res.json({

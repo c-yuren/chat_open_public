@@ -227,6 +227,29 @@
       white-space: nowrap;
     }
 
+    .btn-lang-toggle {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 5px 11px;
+      border-radius: var(--radius-full);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      transition: all 0.2s var(--ease);
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    .btn-lang-toggle:hover {
+      background: var(--surface-hover);
+      color: var(--text-primary);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
     .btn-header-action:hover {
       background: var(--surface-hover);
       border-color: rgba(255, 255, 255, 0.2);
@@ -1134,6 +1157,9 @@
       .settings-tool-grid {
         grid-template-columns: 1fr;
       }
+      .in-chat #btnLangToggle {
+        display: none;
+      }
     }
   </style>
 </head>
@@ -1151,6 +1177,9 @@
       </div>
 
       <div class="header-right">
+        <!-- Language Switcher in Header -->
+        <button class="btn-lang-toggle" id="btnLangToggle" title="切換語言 / Switch Language">🌐 EN</button>
+
         <!-- Essential: Nickname Badge (Tap to edit) -->
         <div class="nickname-badge" id="nicknameBadge" title="點擊修改我的暱稱">
           <span id="nicknameText">我</span>
@@ -1267,38 +1296,38 @@
         <button class="modal-close" id="btnCloseShortcutsModal">&times;</button>
       </div>
       <div style="font-size: 12px; line-height: 1.6; color: var(--text-secondary); background: rgba(255,255,255,0.42); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 14px;">
-        <strong style="color: var(--text-primary); display: block;">使用教學</strong>
+        <strong style="color: var(--text-primary); display: block;" id="scInstTitle">使用教學</strong>
         <div class="shortcut-steps">
           <div class="shortcut-step">
             <span class="shortcut-step-number">1</span>
             <div>
-              <div class="shortcut-step-title">安裝捷徑</div>
-              <div class="shortcut-step-copy">開啟 Apple 捷徑頁面，點擊「取得捷徑」，再選擇加入捷徑。</div>
-              <a class="shortcut-step-action" href="https://www.icloud.com/shortcuts/d3c94c3468554c9b9abf38c9a09e186e" target="_blank" rel="noopener">開啟捷徑安裝頁</a>
+              <div class="shortcut-step-title" id="scStep1Title">安裝捷徑</div>
+              <div class="shortcut-step-copy" id="scStep1Desc">開啟 Apple 捷徑頁面，點擊「取得捷徑」，再選擇加入捷徑。</div>
+              <a class="shortcut-step-action" id="scStep1Action" href="https://www.icloud.com/shortcuts/d3c94c3468554c9b9abf38c9a09e186e" target="_blank" rel="noopener">開啟捷徑安裝頁</a>
             </div>
           </div>
           <div class="shortcut-step">
             <span class="shortcut-step-number">2</span>
             <div>
-              <div class="shortcut-step-title">複製連結、貼上並設定暱稱</div>
-              <div class="shortcut-step-copy">先複製目前聊天室的連結。安裝後第一次執行，貼上連結，再輸入你要顯示的使用者暱稱。</div>
+              <div class="shortcut-step-title" id="scStep2Title">複製連結、貼上並設定暱稱</div>
+              <div class="shortcut-step-copy" id="scStep2Desc">先複製目前聊天室的連結。安裝後第一次執行，貼上連結，再輸入你要顯示的使用者暱稱。</div>
               <button class="shortcut-step-action" id="btnCopyShortcutRoomLink" type="button">複製目前房間連結</button>
             </div>
           </div>
           <div class="shortcut-step">
             <span class="shortcut-step-number">3</span>
             <div>
-              <div class="shortcut-step-title">選擇傳送或查看</div>
-              <div class="shortcut-step-copy">日後打開捷徑後，選擇「傳送訊息」輸入內容，或選擇「查看訊息」讀取最新對話。</div>
+              <div class="shortcut-step-title" id="scStep3Title">選擇傳送或查看</div>
+              <div class="shortcut-step-copy" id="scStep3Desc">日後打開捷徑後，選擇「傳送訊息」輸入內容，或選擇「查看訊息」讀取最新對話。</div>
             </div>
           </div>
         </div>
-        <p style="margin-top: 10px; color: var(--text-muted);">第一次設定完成後，之後只要開啟捷徑並選擇操作即可。</p>
+        <p style="margin-top: 10px; color: var(--text-muted);" id="scNote">第一次設定完成後，之後只要開啟捷徑並選擇操作即可。</p>
       </div>
 
       <div style="font-size: 12px; line-height: 1.6; color: var(--text-secondary); background: rgba(69, 104, 130, 0.08); border: 1px solid rgba(69, 104, 130, 0.2); border-radius: 12px; padding: 12px; margin-bottom: 14px;">
-        <strong style="color: var(--text-primary);">小提醒</strong><br>
-        邀請連結包含房間識別與加密資訊，請只分享給聊天室成員。若要換房間，重新執行捷徑並輸入新的邀請連結即可。
+        <strong style="color: var(--text-primary);" id="scTipTitle">小提醒</strong><br>
+        <span id="scTipDesc">邀請連結包含房間識別與加密資訊，請只分享給聊天室成員。若要換房間，重新執行捷徑並輸入新的邀請連結即可。</span>
       </div>
 
       <!-- Connection Parameters Table (Collapsible) -->
@@ -1358,30 +1387,30 @@
 
       <!-- Section: Profile & Room -->
       <div class="settings-section">
-        <div class="settings-section-title">👤 個人與房間</div>
+        <div class="settings-section-title" id="secTitleProfile">👤 個人與房間</div>
         <div class="settings-row">
           <div>
-            <div class="settings-label">我的暱稱</div>
+            <div class="settings-label" id="lblSettingNick">我的暱稱</div>
             <div class="settings-subtext" id="settingsNickDisplay">我</div>
           </div>
           <button class="btn-banner" id="btnSettingsEditNick">✏️ 修改暱稱</button>
         </div>
         <div class="settings-row">
           <div>
-            <div class="settings-label">房間代碼</div>
+            <div class="settings-label" id="lblSettingRoom">房間代碼</div>
             <div class="settings-subtext" style="font-family: var(--font-mono);" id="settingsRoomDisplay">r_xxxxxxxx</div>
           </div>
           <button class="btn-banner" id="btnSettingsCopyRoom">📋 複製代碼</button>
         </div>
         <div class="settings-row" style="flex-direction: column; align-items: stretch; gap: 8px;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div class="settings-label">訊息儲存容量 (FIFO 50則滾動)</div>
+            <div class="settings-label" id="lblCapacity">訊息儲存容量 (FIFO 50則滾動)</div>
             <span class="settings-subtext" style="font-family: var(--font-mono); font-weight: 700; color: #8B9A6E;" id="settingsCapacityText">0 / 50</span>
           </div>
           <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden;">
             <div id="settingsCapacityFill" style="height: 100%; width: 0%; background: #8B9A6E; transition: width 0.3s ease, background 0.3s ease;"></div>
           </div>
-          <div style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">
+          <div style="font-size: 11px; color: var(--text-muted); line-height: 1.4;" id="descCapacity">
             SQLite 記憶體自動限制 50 則訊息，超額時自動永久抹除最舊訊息，確保極致隱私與伺服器零負擔。
           </div>
         </div>
@@ -1389,13 +1418,13 @@
 
       <!-- Section: Tools & Sync -->
       <div class="settings-section">
-        <div class="settings-section-title">捷徑工具</div>
+        <div class="settings-section-title" id="secTitleTools">捷徑工具</div>
         <div class="settings-tool-grid">
           <div class="settings-tool-card" id="btnToolShortcuts">
             <span class="tool-icon">📲</span>
             <div>
-              <strong>iOS 捷徑</strong>
-              <span>使用捷徑傳送或查看訊息</span>
+              <strong id="toolScTitle">iOS 捷徑</strong>
+              <span id="toolScDesc">使用捷徑傳送或查看訊息</span>
             </div>
           </div>
         </div>
@@ -1403,13 +1432,20 @@
 
       <!-- Section: Preferences -->
       <div class="settings-section">
-        <div class="settings-section-title">🔊 偏好設定</div>
+        <div class="settings-section-title" id="secTitlePref">🔊 偏好設定</div>
         <div class="settings-row">
           <div>
-            <div class="settings-label">新訊息提示音</div>
-            <div class="settings-subtext">收到新訊息時播放清脆音效</div>
+            <div class="settings-label" id="lblPrefSound">新訊息提示音</div>
+            <div class="settings-subtext" id="descPrefSound">收到新訊息時播放清脆音效</div>
           </div>
           <button class="btn-banner" id="btnToggleSound">🔊 開啟</button>
+        </div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-label" id="lblPrefLang">介面語言</div>
+            <div class="settings-subtext" id="descPrefLang">切換繁體中文或英文介面</div>
+          </div>
+          <button class="btn-banner" id="btnSettingsLang">🌐 English</button>
         </div>
       </div>
 
@@ -1417,8 +1453,8 @@
       <div class="settings-section danger">
         <div class="settings-row" style="border: none; padding: 0;">
           <div>
-            <div class="settings-label" style="color: #f87171;">離開聊天室</div>
-            <div class="settings-subtext">清除本機記憶與加密金鑰</div>
+            <div class="settings-label" id="lblDanger" style="color: #f87171;">離開聊天室</div>
+            <div class="settings-subtext" id="descDanger">清除本機記憶與加密金鑰</div>
           </div>
           <button class="btn-banner" id="btnSettingsLeave" style="background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.3); color: #f87171;">🚪 離開房間</button>
         </div>
@@ -1496,17 +1532,399 @@
     }
 
     // ============================================================
+    //  Internationalization (i18n) & Localization
+    // ============================================================
+    const I18N = {
+      zh: {
+        appTitle: '聊天室',
+        baseTitle: '私人聊天室',
+        roomBadgeTitle: '點擊複製房間代碼',
+        nicknameBadgeTitle: '點擊修改我的暱稱',
+        inviteBtn: '邀請',
+        inviteBtnTitle: '邀請另一半加入',
+        settingsBtnTitle: '設定與房間工具',
+        lobbyTitle: '建立私人聊天室',
+        btnCreate: '建立加密聊天室',
+        joinDivider: '使用邀請連結加入',
+        joinPlaceholder: '貼上邀請連結',
+        btnJoin: '加入',
+        emptyTitle: '房間已啟用端到端加密',
+        emptyDesc: '訊息會在瀏覽器端使用 AES-GCM-256 加密後傳送。請建立邀請連結，讓另一位成員加入。',
+        btnEmptyInvite: '複製邀請連結',
+        scrollBottomText: '有新訊息',
+        msgInputPlaceholder: '輸入訊息（Enter 傳送，Shift+Enter 換行）',
+        btnSendTitle: '傳送（Enter）',
+        cooldownText: '⏳ 請稍候 (1.5s)',
+        syncTitle: '📱 同步至我的其他裝置',
+        syncDesc: '使用另一台手機相機掃描此 QR Code，或在電腦/筆電打開此專屬連結，即可作為「自己」在多裝置無縫同步聊天。',
+        btnCopy: '📋 複製',
+        syncCopiedToast: '同步連結已複製',
+        inviteTitle: '邀請另一位成員',
+        inviteDesc: '將此邀請連結提供給另一位成員。房間只接受兩位成員，金鑰會保留在網址片段中，不會送到伺服器。',
+        inviteCopiedToast: '邀請連結已複製，請傳送給對方！',
+        shortcutsTitle: '📲 iOS 捷徑（Apple Shortcuts）設定',
+        instructionsTitle: '使用教學',
+        step1Title: '安裝捷徑',
+        step1Desc: '開啟 Apple 捷徑頁面，點擊「取得捷徑」，再選擇加入捷徑。',
+        step1Action: '開啟捷徑安裝頁',
+        step2Title: '複製連結、貼上並設定暱稱',
+        step2Desc: '先複製目前聊天室的連結。安裝後第一次執行，貼上連結，再輸入你要顯示的使用者暱稱。',
+        step2Action: '複製目前房間連結',
+        step3Title: '選擇傳送或查看',
+        step3Desc: '日後打開捷徑後，選擇「傳送訊息」輸入內容，或選擇「查看訊息」讀取最新對話。',
+        shortcutsTipTitle: '小提醒',
+        shortcutsTipDesc: '邀請連結包含房間識別與加密資訊，請只分享給聊天室成員。若要換房間，重新執行捷徑並輸入新的邀請連結即可。',
+        shortcutsFooterNote: '第一次設定完成後，之後只要開啟捷徑並選擇操作即可。',
+        nickModalTitlePrompt: '👤 設定聊天暱稱',
+        nickModalTitleCreate: '🚀 建立聊天室',
+        nickModalTitleJoin: '👋 加入聊天室',
+        nickModalTitleEdit: '✏️ 修改暱稱',
+        nickModalTitleInvite: '👋 加入加密聊天室',
+        nickModalDescPrompt: '請輸入你在本房間內顯示的暱稱，對方將能看見此名稱：',
+        nickModalDescCreate: '請設定你的暱稱，建立房間後將以此名稱與對方通訊：',
+        nickModalDescJoin: '請設定你的暱稱，進入房間後對方能識別你的訊息：',
+        nickModalDescEdit: '請輸入新聊天暱稱：',
+        nickModalDescInvite: '你收到了一個私人加密聊天室的邀請，請輸入你的暱稱以加入對話：',
+        nickPlaceholder: '例如：小明',
+        btnCancel: '取消',
+        btnConfirm: '確認',
+        nickUpdatedToast: '✨ 暱稱已更新為：',
+        defaultMyNick: '我',
+        defaultPeerNick: '對方',
+        roomCodeCopiedPrefix: '📋 房間代碼 ',
+        roomCodeCopiedSuffix: ' 已複製！',
+        settingsTitle: '⚙️ 設定與房間工具',
+        settingsSectionProfile: '👤 個人與房間',
+        settingsLabelNick: '我的暱稱',
+        settingsBtnEditNick: '✏️ 修改暱稱',
+        settingsLabelRoom: '房間代碼',
+        settingsBtnCopyRoom: '📋 複製代碼',
+        settingsLabelCapacity: '訊息儲存容量 (FIFO 50則滾動)',
+        settingsCapacityDesc: 'SQLite 記憶體自動限制 50 則訊息，超額時自動永久抹除最舊訊息，確保極致隱私與伺服器零負擔。',
+        settingsSectionShortcuts: '捷徑工具',
+        settingsShortcutCardTitle: 'iOS 捷徑',
+        settingsShortcutCardDesc: '使用捷徑傳送或查看訊息',
+        settingsSectionPref: '🔊 偏好設定',
+        settingsLabelSound: '新訊息提示音',
+        settingsDescSound: '收到新訊息時播放清脆音效',
+        settingsLabelLang: '介面語言',
+        settingsDescLang: '切換繁體中文或英文介面',
+        settingsLangBtn: '🌐 English',
+        settingsSectionDanger: '離開聊天室',
+        settingsDangerDesc: '清除本機記憶與加密金鑰',
+        settingsBtnLeave: '🚪 離開房間',
+        leaveConfirm: '確定要離開此聊天室嗎？本機金鑰將被清除。',
+        homeConfirm: '確定返回首頁嗎？',
+        soundOn: '🔊 開啟',
+        soundOff: '🔇 靜音',
+        soundEnabledToast: '提示音已開啟',
+        soundDisabledToast: '提示音已靜音',
+        sessionExpiredToast: '工作階段已失效，請重新加入房間。',
+        resumingToast: '正在恢復上一個工作階段…',
+        creatingToast: '正在建立房間與加密金鑰…',
+        roomCreatedToast: '房間已建立，請複製邀請連結。',
+        createFailedToast: '建立失敗：',
+        joiningToast: '正在連線至房間…',
+        joinFailedToast: '加入失敗：',
+        joinSuccessToast: '已成功加入房間！',
+        joinInvalidToast: '邀請連結無效或房間已過期。',
+        sendFailedToast: '傳送失敗：',
+        copiedToast: '已複製到剪貼簿！',
+        roomCodeCopiedToast: '房間代碼已複製！',
+        shortcutLinkCopiedToast: '🔗 捷徑專屬連結已複製！貼入捷徑 link 欄位即可。',
+        langSwitchedToast: '已切換為繁體中文',
+        langTogglePill: '🌐 EN'
+      },
+      en: {
+        appTitle: 'Chat',
+        baseTitle: 'Private Chat',
+        roomBadgeTitle: 'Click to copy room code',
+        nicknameBadgeTitle: 'Click to edit my nickname',
+        inviteBtn: 'Invite',
+        inviteBtnTitle: 'Invite partner to join',
+        settingsBtnTitle: 'Settings & Tools',
+        lobbyTitle: 'Create a Private Chat Room',
+        btnCreate: 'Create Encrypted Room',
+        joinDivider: 'Or join with an invite link',
+        joinPlaceholder: 'Paste invite link here',
+        btnJoin: 'Join',
+        emptyTitle: 'End-to-End Encryption Active',
+        emptyDesc: 'Messages are encrypted in your browser with AES-GCM-256 before transmission. Share an invite link with your partner to begin.',
+        btnEmptyInvite: 'Copy Invite Link',
+        scrollBottomText: 'New messages',
+        msgInputPlaceholder: 'Type a message... (Enter to send, Shift+Enter for newline)',
+        btnSendTitle: 'Send (Enter)',
+        cooldownText: '⏳ Slow down (1.5s)',
+        syncTitle: '📱 Sync to My Other Device',
+        syncDesc: 'Scan this QR code with your phone camera, or open this exact link on your laptop/PC to chat seamlessly as yourself across multiple devices.',
+        btnCopy: '📋 Copy',
+        syncCopiedToast: 'Sync link copied',
+        inviteTitle: 'Invite Partner',
+        inviteDesc: 'Share this invite link with your partner. The room strictly supports 2 parties; the encryption key stays in the URL fragment and never touches the server.',
+        inviteCopiedToast: 'Invite link copied, share it with your partner!',
+        shortcutsTitle: '📲 iOS Shortcuts Setup',
+        instructionsTitle: 'Instructions',
+        step1Title: 'Install Shortcut',
+        step1Desc: 'Open Apple Shortcuts page, tap "Get Shortcut", and add it to your library.',
+        step1Action: 'Open Shortcut Link',
+        step2Title: 'Copy link, paste & set nickname',
+        step2Desc: 'Copy your current room link. On first run, paste the link and enter your desired nickname.',
+        step2Action: 'Copy Current Room Link',
+        step3Title: 'Select Send or Read',
+        step3Desc: 'Run the shortcut anytime to send a quick message or read the latest messages.',
+        shortcutsTipTitle: 'Security Tip',
+        shortcutsTipDesc: 'The link contains room credentials and encryption keys. Only share with intended participants. To switch rooms, run the shortcut again with a new link.',
+        shortcutsFooterNote: 'Once configured, simply run the shortcut anytime from widgets, Siri, or the Shortcuts app.',
+        nickModalTitlePrompt: '👤 Set Your Nickname',
+        nickModalTitleCreate: '🚀 Create Chat Room',
+        nickModalTitleJoin: '👋 Join Chat Room',
+        nickModalTitleEdit: '👤 Edit Nickname',
+        nickModalTitleInvite: '👋 Join Encrypted Room',
+        nickModalDescPrompt: 'Enter your nickname for this room. Your partner will see this name:',
+        nickModalDescCreate: 'Set your nickname. You will communicate with your partner using this name:',
+        nickModalDescJoin: 'Set your nickname so your partner can identify your messages:',
+        nickModalDescEdit: 'Enter your new nickname:',
+        nickModalDescInvite: 'You received an invite to a private encrypted room. Enter your nickname to join:',
+        nickPlaceholder: 'e.g. Alex',
+        btnCancel: 'Cancel',
+        btnConfirm: 'Confirm',
+        nickUpdatedToast: '✨ Nickname updated to: ',
+        defaultMyNick: 'Me',
+        defaultPeerNick: 'Partner',
+        roomCodeCopiedPrefix: '📋 Room code ',
+        roomCodeCopiedSuffix: ' copied!',
+        settingsTitle: '⚙️ Settings & Tools',
+        settingsSectionProfile: '👤 Profile & Room',
+        settingsLabelNick: 'My Nickname',
+        settingsBtnEditNick: '✏️ Edit Nickname',
+        settingsLabelRoom: 'Room Code',
+        settingsBtnCopyRoom: '📋 Copy Code',
+        settingsLabelCapacity: 'Message Storage (FIFO 50 Cap)',
+        settingsCapacityDesc: 'Strict 50-message rolling limit. Old messages are permanently auto-pruned to protect privacy with zero server retention.',
+        settingsSectionShortcuts: 'Shortcuts & Tools',
+        settingsShortcutCardTitle: 'iOS Shortcuts',
+        settingsShortcutCardDesc: 'Send & read messages with Apple Shortcuts',
+        settingsSectionPref: '🔊 Preferences',
+        settingsLabelSound: 'Sound Notifications',
+        settingsDescSound: 'Play chime when a new message arrives',
+        settingsLabelLang: 'Language',
+        settingsDescLang: 'Traditional Chinese / English',
+        settingsLangBtn: '🌐 繁體中文',
+        settingsSectionDanger: 'Leave Chat Room',
+        settingsDangerDesc: 'Clear local room session and return to lobby',
+        settingsBtnLeave: '🚪 Leave Room',
+        leaveConfirm: 'Are you sure you want to leave this chat room? Local session keys will be cleared.',
+        homeConfirm: 'Return to home lobby?',
+        soundOn: '🔊 On',
+        soundOff: '🔇 Off',
+        soundEnabledToast: 'Sound notifications enabled',
+        soundDisabledToast: 'Sound notifications muted',
+        sessionExpiredToast: 'Session expired. Please rejoin the room.',
+        resumingToast: 'Resuming previous session...',
+        creatingToast: 'Creating room & encryption keys...',
+        roomCreatedToast: 'Room created! Please copy the invite link.',
+        createFailedToast: 'Failed to create room: ',
+        joiningToast: 'Connecting to room...',
+        joinFailedToast: 'Failed to join: ',
+        joinSuccessToast: 'Successfully joined room!',
+        joinInvalidToast: 'Invalid invite link or expired room.',
+        sendFailedToast: 'Failed to send: ',
+        copiedToast: 'Copied to clipboard!',
+        roomCodeCopiedToast: 'Room code copied!',
+        shortcutLinkCopiedToast: '🔗 Shortcut link copied! Paste into Shortcut link field.',
+        langSwitchedToast: 'Language switched to English',
+        langTogglePill: '🌐 中文'
+      }
+    };
+
+    function detectLanguage() {
+      try {
+        const fullUrl = window.location.href;
+        const match = fullUrl.match(/[?&#](?:lang|l)=(zh|en)/i);
+        if (match && (match[1].toLowerCase() === 'zh' || match[1].toLowerCase() === 'en')) {
+          const l = match[1].toLowerCase();
+          localStorage.setItem('ren_lang', l);
+          return l;
+        }
+      } catch {}
+
+      const saved = localStorage.getItem('ren_lang');
+      if (saved === 'zh' || saved === 'en') return saved;
+      const navLang = (navigator.language || navigator.languages?.[0] || 'zh').toLowerCase();
+      return navLang.startsWith('zh') ? 'zh' : 'en';
+    }
+
+    let currentLang = detectLanguage();
+
+    function t(key) {
+      const dict = I18N[currentLang] || I18N['zh'];
+      return dict[key] || I18N['zh'][key] || key;
+    }
+
+    function setLanguage(lang) {
+      if (lang !== 'zh' && lang !== 'en') return;
+      currentLang = lang;
+      localStorage.setItem('ren_lang', lang);
+      applyTranslations();
+    }
+
+    function toggleLanguage() {
+      const next = currentLang === 'zh' ? 'en' : 'zh';
+      setLanguage(next);
+      toast(t('langSwitchedToast'));
+    }
+
+    function applyTranslations() {
+      document.documentElement.lang = currentLang === 'zh' ? 'zh-TW' : 'en';
+
+      // 1. Language Toggle Buttons
+      const btnLangToggle = $('#btnLangToggle');
+      if (btnLangToggle) btnLangToggle.textContent = t('langTogglePill');
+      const btnSettingsLang = $('#btnSettingsLang');
+      if (btnSettingsLang) btnSettingsLang.textContent = t('settingsLangBtn');
+
+      // 2. Header
+      const brandSpan = $('#btnBrand span');
+      if (brandSpan) brandSpan.textContent = t('appTitle');
+      if (roomBadge) roomBadge.title = t('roomBadgeTitle');
+      if (nicknameBadge) nicknameBadge.title = t('nicknameBadgeTitle');
+      const inviteBtnSpan = $('#btnInvitePartner .btn-text');
+      if (inviteBtnSpan) inviteBtnSpan.textContent = t('inviteBtn');
+      if (btnInvitePartner) btnInvitePartner.title = t('inviteBtnTitle');
+      if (btnSettings) btnSettings.title = t('settingsBtnTitle');
+
+      // 3. Lobby
+      const heroTitle = $('.hero-title');
+      if (heroTitle) heroTitle.textContent = t('lobbyTitle');
+      const createRoomSpan = $('#btnCreateRoom span');
+      if (createRoomSpan) createRoomSpan.textContent = t('btnCreate');
+      const joinDivider = $('.join-divider');
+      if (joinDivider) joinDivider.textContent = t('joinDivider');
+      const inputJoin = $('#inputJoinLink');
+      if (inputJoin) inputJoin.placeholder = t('joinPlaceholder');
+      const btnJoin = $('#btnJoinManual');
+      if (btnJoin) btnJoin.textContent = t('btnJoin');
+
+      // 4. Chat View
+      const emptyTitle = $('#emptyState .empty-title');
+      if (emptyTitle) emptyTitle.textContent = t('emptyTitle');
+      const emptyDesc = $('#emptyState .empty-desc');
+      if (emptyDesc) emptyDesc.textContent = t('emptyDesc');
+      const btnEmptyInvite = $('#btnEmptyInvite');
+      if (btnEmptyInvite) btnEmptyInvite.textContent = t('btnEmptyInvite');
+      if (scrollBottomText) scrollBottomText.textContent = t('scrollBottomText');
+      if (msgInput) msgInput.placeholder = t('msgInputPlaceholder');
+      if (btnSend) btnSend.title = t('btnSendTitle');
+      if (cooldownText) cooldownText.textContent = t('cooldownText');
+
+      // 5. Sync Device Modal
+      const syncTitle = $('#syncModal .modal-title');
+      if (syncTitle) syncTitle.textContent = t('syncTitle');
+      const syncDesc = $('#syncModal .modal-desc');
+      if (syncDesc) syncDesc.textContent = t('syncDesc');
+      const btnCopySync = $('#btnCopySyncLink');
+      if (btnCopySync) btnCopySync.textContent = t('btnCopy');
+
+      // 6. Invite Partner Modal
+      const inviteTitle = $('#inviteModal .modal-title');
+      if (inviteTitle) inviteTitle.textContent = t('inviteTitle');
+      const inviteDesc = $('#inviteModal .modal-desc');
+      if (inviteDesc) inviteDesc.textContent = t('inviteDesc');
+      const btnCopyInvite = $('#btnCopyInviteLink');
+      if (btnCopyInvite) btnCopyInvite.textContent = t('btnCopy');
+
+      // 7. Shortcuts Modal
+      const scTitle = $('#shortcutsModal .modal-title');
+      if (scTitle) scTitle.textContent = t('shortcutsTitle');
+      const scInstTitle = $('#scInstTitle');
+      if (scInstTitle) scInstTitle.textContent = t('instructionsTitle');
+      const scStep1Title = $('#scStep1Title');
+      if (scStep1Title) scStep1Title.textContent = t('step1Title');
+      const scStep1Desc = $('#scStep1Desc');
+      if (scStep1Desc) scStep1Desc.textContent = t('step1Desc');
+      const scStep1Action = $('#scStep1Action');
+      if (scStep1Action) scStep1Action.textContent = t('step1Action');
+      const scStep2Title = $('#scStep2Title');
+      if (scStep2Title) scStep2Title.textContent = t('step2Title');
+      const scStep2Desc = $('#scStep2Desc');
+      if (scStep2Desc) scStep2Desc.textContent = t('step2Desc');
+      const scStep2Action = $('#btnCopyShortcutRoomLink');
+      if (scStep2Action) scStep2Action.textContent = t('step2Action');
+      const scStep3Title = $('#scStep3Title');
+      if (scStep3Title) scStep3Title.textContent = t('step3Title');
+      const scStep3Desc = $('#scStep3Desc');
+      if (scStep3Desc) scStep3Desc.textContent = t('step3Desc');
+      const scTipTitle = $('#scTipTitle');
+      if (scTipTitle) scTipTitle.textContent = t('shortcutsTipTitle');
+      const scTipDesc = $('#scTipDesc');
+      if (scTipDesc) scTipDesc.textContent = t('shortcutsTipDesc');
+      const scNote = $('#scNote');
+      if (scNote) scNote.textContent = t('shortcutsFooterNote');
+
+      // 8. Nickname Modal
+      const nickInput = $('#inputNickname');
+      if (nickInput) nickInput.placeholder = t('nickPlaceholder');
+      const btnCancelNick = $('#btnCancelNickname');
+      if (btnCancelNick) btnCancelNick.textContent = t('btnCancel');
+      const btnConfirmNick = $('#btnConfirmNickname');
+      if (btnConfirmNick) btnConfirmNick.textContent = t('btnConfirm');
+
+      // 9. Settings Modal
+      const settingsModalTitle = $('#settingsModal .modal-title');
+      if (settingsModalTitle) settingsModalTitle.textContent = t('settingsTitle');
+      const secTitleProfile = $('#secTitleProfile');
+      if (secTitleProfile) secTitleProfile.textContent = t('settingsSectionProfile');
+      const lblSettingNick = $('#lblSettingNick');
+      if (lblSettingNick) lblSettingNick.textContent = t('settingsLabelNick');
+      const btnEditNick = $('#btnSettingsEditNick');
+      if (btnEditNick) btnEditNick.textContent = t('settingsBtnEditNick');
+      const lblSettingRoom = $('#lblSettingRoom');
+      if (lblSettingRoom) lblSettingRoom.textContent = t('settingsLabelRoom');
+      const btnCopyRoom = $('#btnSettingsCopyRoom');
+      if (btnCopyRoom) btnCopyRoom.textContent = t('settingsBtnCopyRoom');
+      const lblCapacity = $('#lblCapacity');
+      if (lblCapacity) lblCapacity.textContent = t('settingsLabelCapacity');
+      const descCapacity = $('#descCapacity');
+      if (descCapacity) descCapacity.textContent = t('settingsCapacityDesc');
+      const secTitleTools = $('#secTitleTools');
+      if (secTitleTools) secTitleTools.textContent = t('settingsSectionShortcuts');
+      const toolScTitle = $('#toolScTitle');
+      if (toolScTitle) toolScTitle.textContent = t('settingsShortcutCardTitle');
+      const toolScDesc = $('#toolScDesc');
+      if (toolScDesc) toolScDesc.textContent = t('settingsShortcutCardDesc');
+      const secTitlePref = $('#secTitlePref');
+      if (secTitlePref) secTitlePref.textContent = t('settingsSectionPref');
+      const lblPrefSound = $('#lblPrefSound');
+      if (lblPrefSound) lblPrefSound.textContent = t('settingsLabelSound');
+      const descPrefSound = $('#descPrefSound');
+      if (descPrefSound) descPrefSound.textContent = t('settingsDescSound');
+      const btnSound = $('#btnToggleSound');
+      if (btnSound) btnSound.textContent = isSoundEnabled ? t('soundOn') : t('soundOff');
+      const lblPrefLang = $('#lblPrefLang');
+      if (lblPrefLang) lblPrefLang.textContent = t('settingsLabelLang');
+      const descPrefLang = $('#descPrefLang');
+      if (descPrefLang) descPrefLang.textContent = t('settingsDescLang');
+      const secTitleDanger = $('#secTitleDanger');
+      if (secTitleDanger) secTitleDanger.textContent = t('settingsSectionDanger');
+      const descDanger = $('#descDanger');
+      if (descDanger) descDanger.textContent = t('settingsDangerDesc');
+      const btnLeave = $('#btnSettingsLeave');
+      if (btnLeave) btnLeave.textContent = t('settingsBtnLeave');
+
+      updateNicknameUI();
+    }
+
+    // ============================================================
     //  Nickname State & Prompt Logic
     // ============================================================
     let nicknameResolve = null;
 
     function getMyNickname() {
       const saved = localStorage.getItem('ren_nickname');
-      if (saved && saved.trim().toLowerCase() === 'ren') {
-        localStorage.setItem('ren_nickname', '我');
-        return '我';
+      if (!saved || saved === '我' || saved === 'Me' || saved.trim().toLowerCase() === 'ren') {
+        return t('defaultMyNick');
       }
-      return saved || '我';
+      return saved;
     }
 
     function updateNicknameUI(name) {
@@ -1516,7 +1934,7 @@
       if (nickDisplay) nickDisplay.textContent = nick;
     }
 
-    function promptNickname({ title = '👤 設定聊天暱稱', desc = '請輸入你在本房間內顯示的暱稱：', defaultVal = '', canCancel = false } = {}) {
+    function promptNickname({ title = '', desc = '', defaultVal = '', canCancel = false } = {}) {
       return new Promise((resolve) => {
         const titleEl = $('#nicknameModalTitle');
         const descEl = $('#nicknameModalDesc');
@@ -1524,8 +1942,8 @@
         const cancelBtn = $('#btnCancelNickname');
         const closeBtn = $('#btnCloseNicknameModal');
 
-        if (titleEl) titleEl.textContent = title;
-        if (descEl) descEl.textContent = desc;
+        if (titleEl) titleEl.textContent = title || t('nickModalTitlePrompt');
+        if (descEl) descEl.textContent = desc || t('nickModalDescPrompt');
 
         const saved = defaultVal || '';
         if (inputEl) inputEl.value = saved;
@@ -1548,7 +1966,7 @@
     function handleNicknameSubmit() {
       const inputEl = $('#inputNickname');
       let val = inputEl ? inputEl.value.trim() : '';
-      if (!val || val.toLowerCase() === 'ren') val = '我';
+      if (!val || val.toLowerCase() === 'ren') val = t('defaultMyNick');
       localStorage.setItem('ren_nickname', val);
       updateNicknameUI(val);
       nicknameModal.style.display = 'none';
@@ -1741,7 +2159,8 @@
     function getSyncDeviceUrl() {
       const base = getRoomUrl(currentRoom.slot, currentRoom.token);
       const nick = getMyNickname();
-      return nick ? `${base}&user=${encodeURIComponent(nick)}` : base;
+      const langParam = `&lang=${currentLang}`;
+      return nick ? `${base}&user=${encodeURIComponent(nick)}${langParam}` : `${base}${langParam}`;
     }
 
     // ============================================================
@@ -1769,7 +2188,7 @@
         const saved = JSON.parse(savedStr);
         if (!saved.roomId || !saved.rawKeyB64 || !saved.token) return false;
 
-        toast('正在恢復上一個工作階段…', 1000);
+        toast(t('resumingToast'), 1000);
         const res = await apiRequest('/api/rooms/verify', 'POST', {
           roomId: saved.roomId,
           slot: saved.slot,
@@ -1803,13 +2222,13 @@
     async function createRoom() {
       try {
         const nick = await promptNickname({
-          title: '🚀 建立聊天室',
-          desc: '請設定你的暱稱，建立房間後將以此名稱與對方通訊：',
+          title: t('nickModalTitleCreate'),
+          desc: t('nickModalDescCreate'),
           canCancel: true
         });
         if (!nick) return;
 
-        toast('正在建立房間與加密金鑰…', 1500);
+        toast(t('creatingToast'), 1500);
 
         // 1. Request room creation from server
         const res = await apiRequest('/api/rooms/create', 'POST', {});
@@ -1829,12 +2248,12 @@
         saveRoomToStorage(currentRoom);
 
         // Update URL hash with encoded components
-        window.location.hash = `r=${encodeURIComponent(res.roomId)}&k=${encodeURIComponent(b64)}&u=1&t=${encodeURIComponent(res.token1)}`;
+        window.location.hash = `r=${encodeURIComponent(res.roomId)}&k=${encodeURIComponent(b64)}&u=1&t=${encodeURIComponent(res.token1)}&lang=${currentLang}`;
 
         enterChatRoom();
-        toast('房間已建立，請複製邀請連結。');
+        toast(t('roomCreatedToast'));
       } catch (err) {
-        toast(`建立失敗：${err.message}`);
+        toast(`${t('createFailedToast')}${err.message}`);
       }
     }
 
@@ -1874,7 +2293,7 @@
       const { roomId, keyB64, slot, token, quickSend } = parsed;
 
       try {
-        toast('正在連線至房間…', 1200);
+        toast(t('joiningToast'), 1200);
 
         // 1. Verify credentials with server
         const res = await apiRequest('/api/rooms/verify', 'POST', {
@@ -1913,12 +2332,13 @@
         return true;
       } catch (err) {
         console.error('Join failed:', err);
-        toast(`加入失敗：${err.message}`);
+        toast(`${t('joinFailedToast')}${err.message}`);
         return false;
       }
     }
 
     function enterChatRoom() {
+      document.body.classList.add('in-chat');
       stopPolling();
       knownMessageIds.clear();
 
@@ -1948,6 +2368,7 @@
     }
 
     function showLobby() {
+      document.body.classList.remove('in-chat');
       stopPolling();
       currentRoom = { roomId: null, slot: 1, token: null, token2: null, cryptoKey: null, rawKeyB64: null };
       knownMessageIds.clear();
@@ -2022,7 +2443,7 @@
 
               // 直接顯示名稱：過去訊息依照當初發送時的暱稱，改名只影響未來訊息
               const cleanUser = (rawUser && rawUser !== 'Partner' && rawUser !== 'Creator' && rawUser !== 'You' && rawUser !== '成員 1' && rawUser !== '成員 2') ? rawUser : '';
-              const displayName = cleanUser || (isSelf ? (myNickTrimmed || '我') : '對方');
+              const displayName = cleanUser || (isSelf ? (myNickTrimmed || t('defaultMyNick')) : t('defaultPeerNick'));
 
               renderMessageBubble(payload.text, isSelf, msg.timestamp, msg.id, msg.sender, displayName, 'sent');
 
@@ -2039,7 +2460,7 @@
         }
       } catch (err) {
         if (err.status === 403 || err.status === 404) {
-          toast('工作階段已失效，請重新加入房間。');
+          toast(t('sessionExpiredToast'));
           showLobby();
         }
       }
@@ -2113,7 +2534,7 @@
             };
           }
         }
-          toast(`傳送失敗：${err.message}`);
+        toast(`${t('sendFailedToast')}${err.message}`);
       }
     }
 
@@ -2122,8 +2543,8 @@
       group.className = `msg-group ${isSelf ? 'self' : 'peer'}`;
       if (id) group.dataset.id = id;
 
-      const timeStr = timestamp ? new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-      const displayName = customDisplayName || (isSelf ? '我' : '對方');
+      const timeStr = timestamp ? new Date(timestamp).toLocaleTimeString(currentLang === 'zh' ? 'zh-TW' : 'en-US', { hour: '2-digit', minute: '2-digit' }) : '';
+      const displayName = customDisplayName || (isSelf ? t('defaultMyNick') : t('defaultPeerNick'));
 
       const meta = document.createElement('div');
       meta.className = 'msg-meta';
@@ -2131,7 +2552,7 @@
 
       const bubble = document.createElement('div');
       bubble.className = 'msg-bubble';
-      bubble.title = '點擊複製訊息';
+      bubble.title = t('copiedToast');
 
       const textSpan = document.createElement('span');
       textSpan.textContent = text;
@@ -2236,17 +2657,17 @@
       const val = $('#inputJoinLink').value.trim();
       if (!val) return;
       const nick = await promptNickname({
-        title: '👋 加入聊天室',
-        desc: '請設定你的暱稱，進入房間後對方能識別你的訊息：',
+        title: t('nickModalTitleJoin'),
+        desc: t('nickModalDescJoin'),
         canCancel: true
       });
       if (!nick) return;
       const joined = await joinRoomFromHash(val);
       if (joined) {
         $('#inputJoinLink').value = '';
-        toast('🎉 Successfully joined room!');
+        toast(t('joinSuccessToast'));
       } else {
-        toast('❌ Invalid invite link or expired room. Please check the link.');
+        toast(t('joinInvalidToast'));
       }
     }
 
@@ -2276,20 +2697,20 @@
 
     roomBadge.addEventListener('click', () => {
       if (currentRoom.roomId) {
-        copyToClipboard(currentRoom.roomId, `📋 房間代碼 ${currentRoom.roomId} 已複製！`);
+        copyToClipboard(currentRoom.roomId, `${t('roomCodeCopiedPrefix')}${currentRoom.roomId}${t('roomCodeCopiedSuffix')}`);
       }
     });
 
     nicknameBadge.addEventListener('click', async () => {
       const current = getMyNickname();
       const newNick = await promptNickname({
-        title: '✏️ 修改暱稱',
-        desc: '請輸入新的顯示暱稱：',
+        title: t('nickModalTitleEdit'),
+        desc: t('nickModalDescEdit'),
         defaultVal: current,
         canCancel: true
       });
       if (newNick) {
-        toast(`✅ 暱稱已更新為：${newNick}`);
+        toast(`${t('nickUpdatedToast')}${newNick}`);
       }
     });
 
@@ -2317,18 +2738,18 @@
       settingsModal.style.display = 'none';
       const current = getMyNickname();
       const newNick = await promptNickname({
-        title: '✏️ 修改暱稱',
-        desc: '請輸入新的顯示暱稱：',
+        title: t('nickModalTitleEdit'),
+        desc: t('nickModalDescEdit'),
         defaultVal: current,
         canCancel: true
       });
       if (newNick) {
-        toast(`✅ 暱稱已更新為：${newNick}`);
+        toast(`${t('nickUpdatedToast')}${newNick}`);
       }
     });
     $('#btnSettingsCopyRoom').addEventListener('click', () => {
       if (currentRoom.roomId) {
-        copyToClipboard(currentRoom.roomId, `📋 房間代碼 ${currentRoom.roomId} 已複製！`);
+        copyToClipboard(currentRoom.roomId, `${t('roomCodeCopiedPrefix')}${currentRoom.roomId}${t('roomCodeCopiedSuffix')}`);
       }
     });
     $('#btnToolShortcuts').addEventListener('click', () => {
@@ -2337,14 +2758,14 @@
     });
     $('#btnSettingsLeave').addEventListener('click', () => {
       settingsModal.style.display = 'none';
-      if (confirm('確定要離開此聊天室嗎？本機金鑰將被清除。')) {
+      if (confirm(t('leaveConfirm'))) {
         leaveRoom();
       }
     });
 
     $('#btnBrand').addEventListener('click', () => {
       if (currentRoom.roomId) {
-        if (confirm('確定返回首頁嗎？')) showLobby();
+        if (confirm(t('homeConfirm'))) showLobby();
       } else {
         showLobby();
       }
@@ -2357,30 +2778,36 @@
 
     // Modal Copy buttons
     $('#btnCopySyncLink').addEventListener('click', () => {
-      copyToClipboard($('#inputSyncLink').value, '同步連結已複製');
+      copyToClipboard($('#inputSyncLink').value, t('syncCopiedToast'));
     });
     $('#btnCopyInviteLink').addEventListener('click', () => {
-      copyToClipboard($('#inputInviteLink').value, '邀請連結已複製');
+      copyToClipboard($('#inputInviteLink').value, t('inviteCopiedToast'));
     });
 
     const btnCopyScLink = $('#btnCopyShortcutLink');
     if (btnCopyScLink) {
       btnCopyScLink.addEventListener('click', () => {
         const link = getSyncDeviceUrl();
-        copyToClipboard(link, '🔗 捷徑專屬連結已複製！貼入捷徑 link 欄位即可。');
+        copyToClipboard(link, t('shortcutLinkCopiedToast'));
       });
     }
 
     $('#btnCopyShortcutRoomLink').addEventListener('click', () => {
-      copyToClipboard(getSyncDeviceUrl(), '房間連結已複製，請貼到捷徑中。');
+      copyToClipboard(getSyncDeviceUrl(), t('shortcutLinkCopiedToast'));
     });
+
+    // Language Toggle Buttons (Header pill and Settings Modal)
+    const btnLangToggle = $('#btnLangToggle');
+    if (btnLangToggle) btnLangToggle.addEventListener('click', toggleLanguage);
+    const btnSettingsLang = $('#btnSettingsLang');
+    if (btnSettingsLang) btnSettingsLang.addEventListener('click', toggleLanguage);
 
     // Sound Toggle
     $('#btnToggleSound').addEventListener('click', e => {
       isSoundEnabled = !isSoundEnabled;
       localStorage.setItem('ren_sound', isSoundEnabled ? 'true' : 'false');
-      e.target.textContent = isSoundEnabled ? '🔊 開啟' : '🔇 靜音';
-      toast(isSoundEnabled ? '提示音已開啟' : '提示音已靜音');
+      e.target.textContent = isSoundEnabled ? t('soundOn') : t('soundOff');
+      toast(isSoundEnabled ? t('soundEnabledToast') : t('soundDisabledToast'));
     });
 
     // Backdrop clicks to close
@@ -2414,7 +2841,7 @@
     // Reset Title on Window Focus
     window.addEventListener('focus', () => {
       unreadCount = 0;
-      document.title = baseTitle;
+      document.title = t('baseTitle');
     });
 
     // Background tab throttling handling
@@ -2426,7 +2853,7 @@
         }
       } else {
         unreadCount = 0;
-        document.title = baseTitle;
+        document.title = t('baseTitle');
         if (isPolling) {
           clearInterval(pollIntervalTimer);
           pollMessages();
@@ -2441,8 +2868,8 @@
       if (parsed && (!currentRoom.roomId || currentRoom.roomId !== parsed.roomId)) {
         if (!localStorage.getItem('ren_nickname')) {
           await promptNickname({
-            title: '👋 加入加密聊天室',
-            desc: '請設定你的暱稱以加入對話：',
+            title: t('nickModalTitleInvite'),
+            desc: t('nickModalDescInvite'),
             canCancel: false
           });
         }
@@ -2454,6 +2881,8 @@
     //  Initial Boot (Hash URL > LocalStorage > Lobby)
     // ============================================================
     window.addEventListener('DOMContentLoaded', async () => {
+      applyTranslations();
+
       const hashParams = parseHashParams(window.location.hash);
 
       let savedRoom = null;
@@ -2468,8 +2897,8 @@
         // Only ask if this is a brand new invite link AND user has never set a nickname before
         if (!isReload && !hasSavedNickname) {
           await promptNickname({
-            title: '👋 加入加密聊天室',
-            desc: '你收到了一個私人加密聊天室的邀請，請輸入你的暱稱以加入對話：',
+            title: t('nickModalTitleInvite'),
+            desc: t('nickModalDescInvite'),
             canCancel: false
           });
         }
