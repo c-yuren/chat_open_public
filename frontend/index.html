@@ -224,6 +224,7 @@
       font-weight: 600;
       transition: all 0.2s var(--ease);
       flex-shrink: 0;
+      white-space: nowrap;
     }
 
     .btn-header-action:hover {
@@ -1120,13 +1121,15 @@
 
     @media (max-width: 520px) {
       .room-badge {
-        max-width: 90px;
+        max-width: 85px;
       }
       .nickname-badge {
-        max-width: 90px;
+        max-width: 75px;
       }
-      .btn-header-action .btn-text {
-        display: none;
+      .btn-header-action {
+        padding: 5px 10px;
+        font-size: 11px;
+        white-space: nowrap;
       }
       .settings-tool-grid {
         grid-template-columns: 1fr;
