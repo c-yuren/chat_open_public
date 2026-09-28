@@ -1176,12 +1176,13 @@
         <div class="card-desc">
           包含 WAL / SHM 快取 · 50則 FIFO 滾動上限
         </div>
-        <div class="progress-bar-bg">
-          <div class="progress-bar-fill fill-purple" id="barDb" style="width: 15%;"></div>
-        </div>
         <div class="card-meta-row">
           <span>累積訊息總數:</span>
-          <span id="valTotalMessages" style="color: #c4b5fd;">-- 則</span>
+          <span id="valTotalMessages" style="color: #D2C1B6;">-- 則</span>
+        </div>
+        <div class="card-meta-row" style="margin-top: 4px;">
+          <span>WAL 預寫日誌快取:</span>
+          <span id="valDbWalBrief" style="color: #38bdf8;">--</span>
         </div>
       </div>
 
@@ -1602,6 +1603,7 @@
 
     const valDbSize = $('valDbSize');
     const valTotalMessages = $('valTotalMessages');
+    const valDbWalBrief = $('valDbWalBrief');
 
     const valMemPercent = $('valMemPercent');
     const descMem = $('descMem');
@@ -1814,6 +1816,9 @@
       const db = d.storage.database;
       valDbSize.textContent = db.totalSizeFormatted;
       valTotalMessages.textContent = `${db.totalMessages} 則`;
+      if (valDbWalBrief) {
+        valDbWalBrief.textContent = formatBytes(db.walSizeBytes || 0);
+      }
 
       dtDbFile.textContent = formatBytes(db.dbSizeBytes);
       dtDbWal.textContent = `${formatBytes(db.walSizeBytes)} / ${formatBytes(db.shmSizeBytes)}`;
