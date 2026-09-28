@@ -765,6 +765,8 @@ function handleShortcutRead(req, res, returnUnifiedObject = false) {
   let token = extractToken(req) || linkParsed.token;
   let keyStr = req.headers["x-encryption-key"] || req.query?.key || req.body?.key || linkParsed.key;
   let slotNum = req.query?.slot || req.body?.slot ? parseInt(req.query?.slot || req.body?.slot, 10) : linkParsed.slot;
+  const userName = req.body?.user || req.body?.userName || req.query?.user || req.query?.userName || linkParsed.user;
+  const readerName = (userName && typeof userName === "string") ? userName.trim() : null;
   // Strictly provide up to 10 messages at a time for shortcut reading
   const limit = Math.min(parseInt(req.query?.limit || req.body?.limit || "10", 10), 10);
 
@@ -855,7 +857,20 @@ function handleShortcutRead(req, res, returnUnifiedObject = false) {
       }
 
       const { row, parsed } = item;
-      const isSelf = row.sender === slotNum;
+      const parsedUser = (parsed.user && typeof parsed.user === "string") ? parsed.user.trim() : null;
+      const readerNameTrimmed = readerName ? readerName.trim() : null;
+
+      // 核心規則：如果名字一樣就代表是同個人不同裝置！
+      let isSelf = false;
+      if (parsedUser && readerNameTrimmed) {
+        if (parsedUser.toLowerCase() === readerNameTrimmed.toLowerCase()) {
+          isSelf = true; // 名字相同 = 同一個人不同裝置（我）！
+        } else {
+          isSelf = false; // 名字不同 = 對方！
+        }
+      } else {
+        isSelf = row.sender === slotNum;
+      }
 
       let displayName = "";
       if (isSelf) {
@@ -863,15 +878,8 @@ function handleShortcutRead(req, res, returnUnifiedObject = false) {
       } else {
         const peerSlot = slotNum === 1 ? 2 : 1;
         const knownPeerNick = peerSlot === 1 ? slot1Name : slot2Name;
-        if (parsed.user && typeof parsed.user === "string") {
-          const uTrim = parsed.user.trim();
-          if (uTrim && uTrim !== "Partner" && uTrim !== "Creator" && uTrim !== "You" && uTrim !== "我" && uTrim !== "成員 1" && uTrim !== "成員 2" && uTrim !== "對方") {
-            displayName = uTrim;
-          } else if (knownPeerNick) {
-            displayName = knownPeerNick;
-          } else {
-            displayName = "對方";
-          }
+        if (parsedUser && parsedUser !== "Partner" && parsedUser !== "Creator" && parsedUser !== "You" && parsedUser !== "我" && parsedUser !== "成員 1" && parsedUser !== "成員 2" && parsedUser !== "對方") {
+          displayName = parsedUser;
         } else if (knownPeerNick) {
           displayName = knownPeerNick;
         } else {

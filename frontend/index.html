@@ -2005,15 +2005,33 @@
 
             try {
               const payload = await decryptPayload(msg.ciphertext, msg.iv, currentRoom.cryptoKey);
-              const isSelf = msg.sender === currentRoom.slot;
               const myNick = getMyNickname();
+
+              const rawUser = (payload.user && typeof payload.user === 'string') ? payload.user.trim() : '';
+              const myNickTrimmed = (myNick && typeof myNick === 'string') ? myNick.trim() : '';
+
+              // 核心規則：如果名字一樣就代表是同個人不同裝置！
+              const isSameUser = Boolean(
+                rawUser && 
+                myNickTrimmed && 
+                rawUser.toLowerCase() === myNickTrimmed.toLowerCase()
+              );
+              const isDifferentUser = Boolean(
+                rawUser && 
+                myNickTrimmed && 
+                rawUser.toLowerCase() !== myNickTrimmed.toLowerCase()
+              );
+
+              // 名字相同 = 同一個人不同裝置（我）！名字不同 = 對方！若未設定暱稱則回退至 slot 判斷
+              const isSelf = isSameUser ? true : (isDifferentUser ? false : (msg.sender === currentRoom.slot));
+
               const defaultPeerName = '對方';
-              const peerNick = (payload.user && payload.user !== 'Partner' && payload.user !== 'Creator' && payload.user !== 'You' && payload.user !== '我' && payload.user !== '成員 1' && payload.user !== '成員 2') ? payload.user : defaultPeerName;
-              const displayName = isSelf ? myNick : peerNick;
+              const peerNick = (rawUser && rawUser !== 'Partner' && rawUser !== 'Creator' && rawUser !== 'You' && rawUser !== '我' && rawUser !== '成員 1' && rawUser !== '成員 2') ? rawUser : defaultPeerName;
+              const displayName = isSelf ? (myNickTrimmed || '我') : peerNick;
 
               renderMessageBubble(payload.text, isSelf, msg.timestamp, msg.id, msg.sender, displayName, 'sent');
 
-              // Play chime and notify if message is from partner
+              // 僅在收到對方的訊息時播放提示音與桌面通知（自己其他裝置發言不打擾）
               if (!isSelf) {
                 playChime();
                 if (navigator.vibrate) navigator.vibrate(12);
