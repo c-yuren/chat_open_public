@@ -609,7 +609,7 @@ function handleShortcutSend(req, res) {
   let keyStr = req.body?.key || req.headers["x-encryption-key"] || req.query?.key || linkParsed.key;
   let slotNum = req.body?.slot ? parseInt(req.body.slot, 10) : linkParsed.slot;
   const userName = req.body?.user || req.body?.userName || linkParsed.user;
-  const text = req.body?.text || req.query?.text;
+  const text = req.body?.text || req.body?.message || req.body?.msg || req.query?.text || req.query?.message || req.query?.msg;
 
   // Support combined connection key format if raw string with delimiter passed
   if (keyStr && typeof keyStr === "string" && (keyStr.includes(":") || keyStr.includes("#"))) {
@@ -659,7 +659,33 @@ function handleShortcutSend(req, res) {
     return res.status(400).json({ error: "Invalid 256-bit AES encryption key" });
   }
 
-  const finalUserName = userName || (slotNum === 1 ? "Creator" : "Partner");
+  let finalUserName = userName;
+  if (!finalUserName) {
+    // Attempt to recover recent custom nickname for this slot in the room
+    try {
+      const recentMsgs = stmtGetMsgs.all(roomId, 10);
+      for (const row of recentMsgs) {
+        if (row.sender === slotNum) {
+          const combined = Buffer.from(row.ciphertext, "base64");
+          const ivBuf = Buffer.from(row.iv, "base64");
+          const tag = combined.subarray(combined.length - 16);
+          const ciphertextOnly = combined.subarray(0, combined.length - 16);
+          const decipher = crypto.createDecipheriv("aes-256-gcm", rawKeyBuf, ivBuf);
+          decipher.setAuthTag(tag);
+          let dec = decipher.update(ciphertextOnly, null, "utf8");
+          dec += decipher.final("utf8");
+          const p = JSON.parse(dec);
+          if (p.user && p.user !== "Partner" && p.user !== "Creator" && p.user !== "You" && p.user !== "我" && p.user !== "成員 1" && p.user !== "成員 2") {
+            finalUserName = p.user;
+            break;
+          }
+        }
+      }
+    } catch {}
+  }
+  if (!finalUserName) {
+    finalUserName = slotNum === 1 ? "成員 1" : "成員 2";
+  }
 
   // Rate Limits: 1 msg/s burst, 30 msgs/min
   const burstCheck = limiter.check(`send_burst:${ip}`, 1, 1000);
@@ -784,35 +810,84 @@ function handleShortcutRead(req, res, returnUnifiedObject = false) {
     }
 
     const decryptedMessages = [];
+    let slot1Name = null;
+    let slot2Name = null;
+
+    // First pass: decrypt and discover existing custom nicknames for both slots
+    const rawParsedList = [];
     for (const row of rows) {
       try {
         const combined = Buffer.from(row.ciphertext, "base64");
-        const iv = Buffer.from(row.iv, "base64");
+        const ivBuf = Buffer.from(row.iv, "base64");
         const tag = combined.subarray(combined.length - 16);
         const ciphertextOnly = combined.subarray(0, combined.length - 16);
 
-        const decipher = crypto.createDecipheriv("aes-256-gcm", rawKeyBuf, iv);
+        const decipher = crypto.createDecipheriv("aes-256-gcm", rawKeyBuf, ivBuf);
         decipher.setAuthTag(tag);
         let dec = decipher.update(ciphertextOnly, null, "utf8");
         dec += decipher.final("utf8");
         const parsed = JSON.parse(dec);
 
-        decryptedMessages.push({
-          id: row.id,
-          user: parsed.user || (row.sender === slotNum ? "You" : "Partner"),
-          text: parsed.text,
-          slot: row.sender,
-          isSelf: row.sender === slotNum,
-          timestamp: row.timestamp,
-        });
+        if (parsed.user && typeof parsed.user === "string") {
+          const uTrim = parsed.user.trim();
+          if (uTrim && uTrim !== "Partner" && uTrim !== "Creator" && uTrim !== "You" && uTrim !== "我" && uTrim !== "成員 1" && uTrim !== "成員 2" && uTrim !== "對方") {
+            if (row.sender === 1 && !slot1Name) slot1Name = uTrim;
+            if (row.sender === 2 && !slot2Name) slot2Name = uTrim;
+          }
+        }
+
+        rawParsedList.push({ row, parsed, ok: true });
       } catch (err) {
-        decryptedMessages.push({
-          id: row.id,
-          user: "Unknown",
-          text: "[Encrypted Message - Key mismatch]",
-          timestamp: row.timestamp,
-        });
+        rawParsedList.push({ row, parsed: null, ok: false });
       }
+    }
+
+    // Second pass: format display names cleanly (Never display English "Partner" or "Creator")
+    for (const item of rawParsedList) {
+      if (!item.ok) {
+        decryptedMessages.push({
+          id: item.row.id,
+          user: "未知",
+          text: "[加密訊息 - 金鑰不相符]",
+          timestamp: item.row.timestamp,
+        });
+        continue;
+      }
+
+      const { row, parsed } = item;
+      const isSelf = row.sender === slotNum;
+
+      let displayName = "";
+      if (isSelf) {
+        displayName = "我";
+      } else {
+        const peerSlot = slotNum === 1 ? 2 : 1;
+        const knownPeerNick = peerSlot === 1 ? slot1Name : slot2Name;
+        if (parsed.user && typeof parsed.user === "string") {
+          const uTrim = parsed.user.trim();
+          if (uTrim && uTrim !== "Partner" && uTrim !== "Creator" && uTrim !== "You" && uTrim !== "我" && uTrim !== "成員 1" && uTrim !== "成員 2" && uTrim !== "對方") {
+            displayName = uTrim;
+          } else if (knownPeerNick) {
+            displayName = knownPeerNick;
+          } else {
+            displayName = "對方";
+          }
+        } else if (knownPeerNick) {
+          displayName = knownPeerNick;
+        } else {
+          displayName = "對方";
+        }
+      }
+
+      decryptedMessages.push({
+        id: row.id,
+        user: displayName,
+        rawUser: parsed.user,
+        text: parsed.text,
+        slot: row.sender,
+        isSelf,
+        timestamp: row.timestamp,
+      });
     }
 
     // Generate formatted single-string display for easy iOS Shortcut popup
@@ -851,7 +926,7 @@ app.all("/api/shortcut/messages", (req, res) => handleShortcutRead(req, res, fal
 // ---------- 8. iOS Shortcut Unified 2-in-1 Endpoint (ALL /api/shortcut) ----------
 // Input link only once! If text is provided -> SEND; If text is omitted -> READ
 app.all("/api/shortcut", (req, res) => {
-  const text = req.body?.text || req.query?.text;
+  const text = req.body?.text || req.body?.message || req.body?.msg || req.query?.text || req.query?.message || req.query?.msg;
   const action = req.body?.action || req.query?.action;
   if (text && typeof text === "string" && text.trim().length > 0 && action !== "read") {
     return handleShortcutSend(req, res);

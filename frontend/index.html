@@ -1736,7 +1736,9 @@
     }
 
     function getSyncDeviceUrl() {
-      return getRoomUrl(currentRoom.slot, currentRoom.token);
+      const base = getRoomUrl(currentRoom.slot, currentRoom.token);
+      const nick = getMyNickname();
+      return nick ? `${base}&user=${encodeURIComponent(nick)}` : base;
     }
 
     // ============================================================
@@ -2005,8 +2007,9 @@
               const payload = await decryptPayload(msg.ciphertext, msg.iv, currentRoom.cryptoKey);
               const isSelf = msg.sender === currentRoom.slot;
               const myNick = getMyNickname();
-              const defaultPeerName = currentRoom.slot === 1 ? 'Partner' : 'Creator';
-              const displayName = payload.user || (isSelf ? myNick : defaultPeerName);
+              const defaultPeerName = '對方';
+              const peerNick = (payload.user && payload.user !== 'Partner' && payload.user !== 'Creator' && payload.user !== 'You' && payload.user !== '我' && payload.user !== '成員 1' && payload.user !== '成員 2') ? payload.user : defaultPeerName;
+              const displayName = isSelf ? myNick : peerNick;
 
               renderMessageBubble(payload.text, isSelf, msg.timestamp, msg.id, msg.sender, displayName, 'sent');
 
@@ -2107,7 +2110,7 @@
       if (id) group.dataset.id = id;
 
       const timeStr = timestamp ? new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-      const displayName = customDisplayName || (isSelf ? 'You' : 'Partner');
+      const displayName = customDisplayName || (isSelf ? '我' : '對方');
 
       const meta = document.createElement('div');
       meta.className = 'msg-meta';
