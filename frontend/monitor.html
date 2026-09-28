@@ -347,7 +347,7 @@
     /* Detailed Sections Layout */
     .section-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       gap: 16px;
       margin-bottom: 24px;
     }
@@ -362,17 +362,19 @@
       }
 
       .room-table th:nth-child(1),
-      .room-table td:nth-child(1) { width: 19%; }
+      .room-table td:nth-child(1) { width: 17%; }
       .room-table th:nth-child(2),
-      .room-table td:nth-child(2) { width: 14%; }
+      .room-table td:nth-child(2) { width: 17%; }
       .room-table th:nth-child(3),
-      .room-table td:nth-child(3) { width: 19%; }
+      .room-table td:nth-child(3) { width: 16%; }
       .room-table th:nth-child(4),
-      .room-table td:nth-child(4) { width: 16%; }
+      .room-table td:nth-child(4) { width: 12%; }
       .room-table th:nth-child(5),
-      .room-table td:nth-child(5) { width: 18%; }
+      .room-table td:nth-child(5) { width: 16%; }
       .room-table th:nth-child(6),
-      .room-table td:nth-child(6) { width: 14%; }
+      .room-table td:nth-child(6) { width: 12%; }
+      .room-table th:nth-child(7),
+      .room-table td:nth-child(7) { width: 10%; }
     }
 
     @media (max-width: 768px) {
@@ -512,9 +514,9 @@
       pointer-events: none;
     }
     .admin-card {
-      background: linear-gradient(145deg, rgba(22, 20, 36, 0.95), rgba(12, 11, 22, 0.98));
-      border: 1px solid rgba(139, 92, 246, 0.35);
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 40px rgba(139, 92, 246, 0.2);
+      background: linear-gradient(145deg, rgba(27, 60, 83, 0.95), rgba(18, 42, 60, 0.98));
+      border: 1px solid var(--border-glow);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 35px rgba(210, 193, 182, 0.15);
       border-radius: var(--radius-lg);
       max-width: 440px;
       width: 100%;
@@ -531,13 +533,13 @@
       height: 58px;
       margin: 0 auto 16px;
       border-radius: 16px;
-      background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(6, 182, 212, 0.2));
-      border: 1px solid rgba(139, 92, 246, 0.4);
+      background: rgba(69, 104, 130, 0.35);
+      border: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 28px;
-      box-shadow: 0 8px 24px rgba(139, 92, 246, 0.25);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
     }
     .admin-title {
       font-size: 18px;
@@ -570,7 +572,7 @@
     }
     .admin-input:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.25);
+      box-shadow: 0 0 0 3px rgba(210, 193, 182, 0.2);
     }
     .admin-toggle-pwd {
       position: absolute;
@@ -599,7 +601,7 @@
       font-weight: 600;
       font-size: 13px;
       cursor: pointer;
-      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.35);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
       transition: transform 0.15s, opacity 0.15s;
     }
     .admin-btn:hover {
@@ -628,9 +630,9 @@
       font-weight: 600;
       padding: 5px 10px;
       border-radius: 999px;
-      background: rgba(139, 92, 246, 0.15);
-      border: 1px solid rgba(139, 92, 246, 0.35);
-      color: #c4b5fd;
+      background: rgba(69, 104, 130, 0.35);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
     }
     .btn-logout {
       background: rgba(239, 68, 68, 0.12);
@@ -712,15 +714,30 @@
       color: var(--text-primary);
     }
     .filter-chip.active {
-      background: rgba(139, 92, 246, 0.22);
-      border-color: rgba(139, 92, 246, 0.45);
-      color: #c4b5fd;
+      background: rgba(139, 154, 110, 0.25);
+      border-color: rgba(139, 154, 110, 0.55);
+      color: #8B9A6E;
+    }
+    .sort-select {
+      background: rgba(10, 10, 18, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-sm);
+      padding: 5px 8px;
+      font-size: 11px;
+      color: var(--text-secondary);
+      font-family: var(--font);
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .sort-select:focus {
+      border-color: var(--accent);
     }
 
     /* Room Stat Mini Bar */
     .room-summary-bar {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
       gap: 10px;
       margin-bottom: 18px;
       padding: 12px 16px;
@@ -783,9 +800,9 @@
     .room-id-tag {
       font-family: var(--font-mono);
       font-weight: 600;
-      color: #c4b5fd;
-      background: rgba(139, 92, 246, 0.12);
-      border: 1px solid rgba(139, 92, 246, 0.25);
+      color: #D2C1B6;
+      background: rgba(210, 193, 182, 0.12);
+      border: 1px solid rgba(210, 193, 182, 0.28);
       padding: 3px 8px;
       border-radius: 6px;
       display: inline-flex;
@@ -802,6 +819,67 @@
     }
     .btn-copy-id:hover {
       color: #fff;
+    }
+    .member-slots {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .slot-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 5px;
+      font-weight: 600;
+    }
+    .slot-pill.online {
+      background: rgba(139, 154, 110, 0.2);
+      color: #8B9A6E;
+      border: 1px solid rgba(139, 154, 110, 0.45);
+    }
+    .slot-pill.offline {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-muted);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .slot-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+    }
+    .slot-pill.online .slot-dot {
+      background: #8B9A6E;
+      box-shadow: 0 0 5px rgba(139, 154, 110, 0.8);
+    }
+    .slot-pill.offline .slot-dot {
+      background: rgba(255, 255, 255, 0.25);
+    }
+    .expire-tag {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .expire-tag.safe {
+      color: var(--text-secondary);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .expire-tag.warning {
+      color: #fbbf24;
+      background: rgba(251, 191, 36, 0.15);
+      border: 1px solid rgba(251, 191, 36, 0.35);
+    }
+    .expire-tag.critical {
+      color: #fca5a5;
+      background: rgba(239, 68, 68, 0.18);
+      border: 1px solid rgba(239, 68, 68, 0.4);
     }
     .room-status-badge {
       display: inline-flex;
@@ -982,8 +1060,8 @@
       bottom: 24px;
       right: 24px;
       z-index: 10001;
-      background: rgba(18, 18, 28, 0.95);
-      border: 1px solid rgba(139, 92, 246, 0.4);
+      background: rgba(27, 60, 83, 0.95);
+      border: 1px solid rgba(210, 193, 182, 0.35);
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
       border-radius: var(--radius-md);
       padding: 12px 18px;
@@ -1015,6 +1093,8 @@
           <div class="brand-title">系統監控中心</div>
           <div class="brand-sub">
             <span>Oracle Cloud VM · Ubuntu</span>
+            <span>•</span>
+            <span id="textHostName">--</span>
             <span>•</span>
             <span id="textServerTime">伺服器時間</span>
           </div>
@@ -1145,6 +1225,10 @@
           <span>在線房間 / 即時用戶:</span>
           <span id="valOnlineRooms" style="color: #8B9A6E;">-- 室 / -- 人</span>
         </div>
+        <div class="card-meta-row" style="margin-top: 4px;">
+          <span>限流器活躍 IP (10m):</span>
+          <span id="valActiveBuckets" style="color: #38bdf8;">-- 個</span>
+        </div>
       </div>
 
     </section>
@@ -1158,10 +1242,20 @@
 
         <div class="room-toolbar">
           <input type="text" id="inputSearchRoom" class="search-input" placeholder="搜尋房間 ID" autocomplete="off">
-          
+
+          <select id="selectSort" class="sort-select">
+            <option value="active-desc">排序：最近活躍優先</option>
+            <option value="active-asc">排序：最早活躍</option>
+            <option value="msgs-desc">排序：訊息數最多</option>
+            <option value="traffic-desc">排序：傳輸流量最高</option>
+            <option value="created-desc">排序：最新建立</option>
+            <option value="expire-asc">排序：即將到期優先</option>
+          </select>
+
           <button class="filter-chip active" data-filter="all" id="filterAll">全部</button>
           <button class="filter-chip" data-filter="online" id="filterOnline">僅在線</button>
-          <button class="filter-chip" data-filter="recent" id="filterRecent">近期活躍</button>
+          <button class="filter-chip" data-filter="both" id="filterBoth">雙方在線</button>
+          <button class="filter-chip" data-filter="recent" id="filterRecent">24h 活躍</button>
           <button class="filter-chip" data-filter="idle" id="filterIdle">閒置</button>
 
           <button class="btn-nav" id="btnRefreshRooms" title="立即刷新聊天室清單" style="padding: 6px 12px; font-size: 11px;">
@@ -1181,12 +1275,20 @@
           <span class="room-sum-val" style="color: #8B9A6E;" id="sumOnlineRooms">-- 室 (0人)</span>
         </div>
         <div class="room-sum-item">
+          <span class="room-sum-label">雙方皆在線</span>
+          <span class="room-sum-val" style="color: #8B9A6E;" id="sumBothOnlineRooms">-- 室</span>
+        </div>
+        <div class="room-sum-item">
+          <span class="room-sum-label">24h 活躍房間</span>
+          <span class="room-sum-val" style="color: #D2C1B6;" id="sumActive24hRooms">-- 間</span>
+        </div>
+        <div class="room-sum-item">
           <span class="room-sum-label">聊天傳輸累積總流量</span>
           <span class="room-sum-val" style="color: #38bdf8;" id="sumTotalTraffic">--</span>
         </div>
         <div class="room-sum-item">
           <span class="room-sum-label">全站累積儲存訊息</span>
-          <span class="room-sum-val" style="color: #c4b5fd;" id="sumTotalMsgs">-- 則</span>
+          <span class="room-sum-val" style="color: #D2C1B6;" id="sumTotalMsgs">-- 則</span>
         </div>
       </div>
 
@@ -1196,16 +1298,17 @@
           <thead>
             <tr>
               <th>房間識別碼 (Room ID)</th>
-              <th>即時活躍狀態</th>
+              <th>成員在線 (Slot 1 / 2)</th>
               <th>儲存訊息 (上限 50 則)</th>
               <th>網路傳輸流量</th>
               <th>最後活躍時間</th>
+              <th>閒置自動清理 (14天)</th>
               <th>管理操作</th>
             </tr>
           </thead>
           <tbody id="roomTableBody">
             <tr>
-              <td colspan="6" class="table-empty">
+              <td colspan="7" class="table-empty">
                 <div class="spinning" style="display: inline-block; font-size: 16px; margin-bottom: 6px;">↻</div>
                 <div>正在載入聊天室資料...</div>
               </td>
@@ -1250,7 +1353,7 @@
           </tr>
           <tr>
             <td>24小時活躍房間 (Active 24h)</td>
-            <td id="dtActive24h" style="color: #c4b5fd;">-- 間</td>
+            <td id="dtActive24h" style="color: #D2C1B6;">-- 間</td>
           </tr>
           <tr>
             <td>每房訊息保留規則</td>
@@ -1269,6 +1372,10 @@
           <span>🖥️ 主機伺服器與執行環境</span>
         </h3>
         <table class="data-table">
+          <tr>
+            <td>主機名稱 (Hostname)</td>
+            <td id="dtHostName" style="font-family: var(--font-mono);">--</td>
+          </tr>
           <tr>
             <td>系統連續開機時間 (Host Uptime)</td>
             <td id="dtSysUptime" style="color: #8B9A6E;">--</td>
@@ -1290,7 +1397,7 @@
             <td id="dtNodeVer">--</td>
           </tr>
           <tr>
-            <td>Node Heap 記憶體分配</td>
+            <td>Node Heap 記憶體 (Used / Total)</td>
             <td id="dtNodeHeap">-- MB / -- MB</td>
           </tr>
           <tr>
@@ -1298,12 +1405,53 @@
             <td id="dtCpuModel">--</td>
           </tr>
           <tr>
+            <td>CPU 負載指數 (1m / 5m / 15m)</td>
+            <td id="dtCpuLoads" style="font-family: var(--font-mono);">--</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Panel C: Security, Privacy & Network Protocol -->
+      <div class="detail-card">
+        <h3 class="detail-title">
+          <span>🛡️ 安全防禦、隱私協議與網路指標</span>
+        </h3>
+        <table class="data-table">
+          <tr>
             <td>端到端加密協議 (E2EE)</td>
-            <td style="color: #8B9A6E;">AES-GCM-256 (零知識)</td>
+            <td style="color: #8B9A6E;">AES-GCM-256 (零知識，無明文存儲)</td>
+          </tr>
+          <tr>
+            <td>金鑰協商機制</td>
+            <td style="color: #D2C1B6;">URL Hash 分離錨點 (金鑰不上傳後端)</td>
           </tr>
           <tr>
             <td>傳輸層安全性 (TLS)</td>
             <td style="color: #8B9A6E;">Let's Encrypt HTTPS / TLS 1.3</td>
+          </tr>
+          <tr>
+            <td>訪客 IP 隱私策略</td>
+            <td style="color: #8B9A6E;">資料庫零 IP 記錄 (徹底保障訪客隱私)</td>
+          </tr>
+          <tr>
+            <td>限流防禦活躍 IP 桶數</td>
+            <td id="dtActiveBuckets" style="color: #38bdf8; font-family: var(--font-mono);">-- 個 (記憶體暫存，10分自動過期)</td>
+          </tr>
+          <tr>
+            <td>即時在線連線數</td>
+            <td id="dtLiveConnStats" style="color: #8B9A6E; font-family: var(--font-mono);">-- 室活躍 / -- 人在線</td>
+          </tr>
+          <tr>
+            <td>防濫用速率限制 (Rate Limit)</td>
+            <td>一般 200次/10分 · 寫入 60次/10分</td>
+          </tr>
+          <tr>
+            <td>反向代理層 (Proxy)</td>
+            <td>Nginx 1.24+ (反向代理至 127.0.0.1:3001)</td>
+          </tr>
+          <tr>
+            <td>進程守護管理 (Daemon)</td>
+            <td>PM2 Process Manager (cluster / fork)</td>
           </tr>
         </table>
       </div>
@@ -1311,12 +1459,12 @@
     </section>
 
     <!-- Shortcuts Quick Guide Integration -->
-    <section class="detail-card" style="margin-bottom: 24px; background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(6, 182, 212, 0.06) 100%);">
+    <section class="detail-card" style="margin-bottom: 24px; background: linear-gradient(135deg, rgba(35, 76, 106, 0.22) 0%, rgba(69, 104, 130, 0.12) 100%);">
       <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;">
         <h3 class="detail-title" style="margin-bottom: 0;">
           <span>📲 iOS 捷徑：二合一極速整合 (單次輸入 Link 同時發送與讀取)</span>
         </h3>
-        <span style="font-size: 11px; font-weight: 700; background: rgba(139, 92, 246, 0.25); color: #c4b5fd; padding: 3px 9px; border-radius: 999px; border: 1px solid rgba(139, 92, 246, 0.4);">
+        <span style="font-size: 11px; font-weight: 700; background: rgba(210, 193, 182, 0.18); color: #D2C1B6; padding: 3px 9px; border-radius: 999px; border: 1px solid rgba(210, 193, 182, 0.35);">
           API: /api/shortcut
         </span>
       </div>
@@ -1484,13 +1632,23 @@
 
     // Room Management Elements
     const inputSearchRoom = $('inputSearchRoom');
+    const selectSort = $('selectSort');
     const btnRefreshRooms = $('btnRefreshRooms');
     const iconRoomRefresh = $('iconRoomRefresh');
     const roomTableBody = $('roomTableBody');
     const sumTotalRooms = $('sumTotalRooms');
     const sumOnlineRooms = $('sumOnlineRooms');
+    const sumBothOnlineRooms = $('sumBothOnlineRooms');
+    const sumActive24hRooms = $('sumActive24hRooms');
     const sumTotalTraffic = $('sumTotalTraffic');
     const sumTotalMsgs = $('sumTotalMsgs');
+
+    const textHostName = $('textHostName');
+    const valActiveBuckets = $('valActiveBuckets');
+    const dtHostName = $('dtHostName');
+    const dtCpuLoads = $('dtCpuLoads');
+    const dtActiveBuckets = $('dtActiveBuckets');
+    const dtLiveConnStats = $('dtLiveConnStats');
 
     // Delete Modal Elements
     const deleteModal = $('deleteModal');
@@ -1636,9 +1794,10 @@
     function renderStatusData(d) {
       if (!d || !d.ok) return;
 
-      // Clock
+      // Clock & Host
       const date = new Date(d.system.serverTime || Date.now());
       textServerTime.textContent = date.toLocaleTimeString('zh-TW', { hour12: false });
+      if (textHostName) textHostName.textContent = d.system.hostname || 'Ubuntu-VM';
 
       // 1. Disk
       const disk = d.storage.disk;
@@ -1678,14 +1837,27 @@
       barCpu.style.width = `${Math.min(100, cpu.loadPercent || 5)}%`;
 
       valOnlineRooms.textContent = `${d.activity.onlineRoomsNow} 室 / ${d.activity.onlineUsersNow} 人`;
+      if (valActiveBuckets) {
+        valActiveBuckets.textContent = `${d.activity?.activeIpLimiterBuckets ?? 0} 個`;
+      }
 
-      // 5. Host specs
+      // 5. Host & Security Specs
+      if (dtHostName) dtHostName.textContent = d.system.hostname || 'Ubuntu-VM';
       dtSysUptime.textContent = d.system.uptimeFormatted;
       dtProcessUptime.textContent = d.system.processUptimeFormatted;
       dtOs.textContent = `${d.system.platform} (${d.system.release})`;
       dtArch.textContent = d.system.arch;
       dtNodeVer.textContent = d.system.nodeVersion;
       dtCpuModel.textContent = `${cpu.cores} × ${cpu.model}`;
+      if (dtCpuLoads) {
+        dtCpuLoads.textContent = cpu.loadAvg ? `[${loadStr}] (${cpu.cores} 核 · 佔比 ${cpu.loadPercent}%)` : '--';
+      }
+      if (dtActiveBuckets) {
+        dtActiveBuckets.textContent = `${d.activity?.activeIpLimiterBuckets ?? 0} 個 (記憶體暫存，10分自動過期)`;
+      }
+      if (dtLiveConnStats) {
+        dtLiveConnStats.textContent = `${d.activity?.onlineRoomsNow ?? 0} 室活躍 / ${d.activity?.onlineUsersNow ?? 0} 人在線`;
+      }
     }
 
     // ============================================================
@@ -1718,6 +1890,13 @@
         const onlineCount = data.onlineRoomsCount || 0;
         const onlineUsers = allRooms.reduce((acc, r) => acc + (r.activeUsers || 0), 0);
         sumOnlineRooms.textContent = `${onlineCount} 室 (${onlineUsers}人)`;
+
+        const bothOnlineCount = allRooms.filter(r => r.u1Online && r.u2Online).length;
+        if (sumBothOnlineRooms) sumBothOnlineRooms.textContent = `${bothOnlineCount} 室`;
+
+        const active24hCount = allRooms.filter(r => (r.diffMinutes || 0) <= 1440).length;
+        if (sumActive24hRooms) sumActive24hRooms.textContent = `${active24hCount} 間`;
+
         sumTotalTraffic.textContent = data.totalTrafficFormatted || '0 B';
 
         const totalMsgs = allRooms.reduce((acc, r) => acc + (r.messageCount || 0), 0);
@@ -1740,10 +1919,12 @@
 
       if (currentFilter === 'online') {
         filtered = filtered.filter(r => r.isOnline);
+      } else if (currentFilter === 'both') {
+        filtered = filtered.filter(r => r.u1Online && r.u2Online);
       } else if (currentFilter === 'recent') {
-        filtered = filtered.filter(r => r.status === 'recent');
+        filtered = filtered.filter(r => (r.diffMinutes || 0) <= 1440);
       } else if (currentFilter === 'idle') {
-        filtered = filtered.filter(r => r.status === 'idle');
+        filtered = filtered.filter(r => (r.diffMinutes || 0) > 1440);
       }
 
       if (searchQuery) {
@@ -1751,10 +1932,26 @@
         filtered = filtered.filter(r => r.id.toLowerCase().includes(q));
       }
 
+      // Sort rooms
+      const sortVal = selectSort ? selectSort.value : 'active-desc';
+      filtered.sort((a, b) => {
+        if (sortVal === 'active-desc') return (a.diffMinutes || 0) - (b.diffMinutes || 0);
+        if (sortVal === 'active-asc') return (b.diffMinutes || 0) - (a.diffMinutes || 0);
+        if (sortVal === 'msgs-desc') return (b.messageCount || 0) - (a.messageCount || 0);
+        if (sortVal === 'traffic-desc') return (b.trafficBytes || 0) - (a.trafficBytes || 0);
+        if (sortVal === 'created-desc') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        if (sortVal === 'expire-asc') {
+          const expA = 20160 - (a.diffMinutes || 0);
+          const expB = 20160 - (b.diffMinutes || 0);
+          return expA - expB;
+        }
+        return 0;
+      });
+
       if (filtered.length === 0) {
         roomTableBody.innerHTML = `
           <tr>
-            <td colspan="6" class="table-empty">
+            <td colspan="7" class="table-empty">
               <div style="font-size: 24px; margin-bottom: 6px;">🔍</div>
               <div>未找到符合條件的房間</div>
             </td>
@@ -1765,10 +1962,14 @@
 
       let html = '';
       for (const r of filtered) {
-        // Status badge
-        let statusBadgeClass = 'idle';
-        if (r.isOnline) statusBadgeClass = 'online';
-        else if (r.status === 'recent') statusBadgeClass = 'recent';
+        // Slot presence indicators
+        const u1Html = r.u1Online 
+          ? `<span class="slot-pill online" title="成員 1：30秒內活躍"><span class="slot-dot"></span>Slot 1 在線</span>` 
+          : `<span class="slot-pill offline" title="成員 1：離線"><span class="slot-dot"></span>Slot 1 離線</span>`;
+        const u2Html = r.u2Online 
+          ? `<span class="slot-pill online" title="成員 2：30秒內活躍"><span class="slot-dot"></span>Slot 2 在線</span>` 
+          : `<span class="slot-pill offline" title="成員 2：離線"><span class="slot-dot"></span>Slot 2 離線</span>`;
+        const slotsHtml = `<div class="member-slots">${u1Html}${u2Html}</div>`;
 
         // Message Progress
         const pct = Math.min(100, Math.round((r.messageCount / r.maxMessages) * 100));
@@ -1779,6 +1980,20 @@
           ? '--' 
           : `${lastActiveDate.toLocaleDateString('zh-TW', { month: '2-digit', day: '2-digit' })} ${lastActiveDate.toLocaleTimeString('zh-TW', { hour12: false, hour: '2-digit', minute: '2-digit' })}`;
 
+        // Expiration Countdown (14 days = 20160 mins)
+        const diffMin = r.diffMinutes || 0;
+        const totalExpireMin = 14 * 24 * 60;
+        const remainingMin = Math.max(0, totalExpireMin - diffMin);
+        const remainingDays = (remainingMin / (24 * 60)).toFixed(1);
+        let expireBadge = '';
+        if (remainingMin <= 0) {
+          expireBadge = `<span class="expire-tag critical" title="已超過 14 天無活動，系統排程將自動銷毀">⚠️ 待清理</span>`;
+        } else if (remainingDays < 2) {
+          expireBadge = `<span class="expire-tag warning" title="即將於 ${remainingDays} 天後自動清除">⏳ 剩 ${remainingDays} 天</span>`;
+        } else {
+          expireBadge = `<span class="expire-tag safe" title="離 14 天閒置清理剩餘 ${remainingDays} 天">✅ 剩 ${remainingDays} 天</span>`;
+        }
+
         html += `
           <tr>
             <td>
@@ -1788,9 +2003,7 @@
               </div>
             </td>
             <td>
-              <span class="room-status-badge ${statusBadgeClass}">
-                ${escapeHtml(r.statusLabel)}
-              </span>
+              ${slotsHtml}
             </td>
             <td>
               <div class="msg-progress-box">
@@ -1814,6 +2027,9 @@
               <div style="font-size: 10px; color: var(--text-muted);">${formatRelativeTime(r.diffMinutes)}</div>
             </td>
             <td>
+              ${expireBadge}
+            </td>
+            <td>
               <button class="btn-delete-room" onclick="promptDeleteRoom('${escapeHtml(r.id)}')">
                 <span>🗑️</span>
                 <span>刪除</span>
@@ -1835,6 +2051,11 @@
         renderRoomTable();
       });
     });
+
+    // Sort Dropdown
+    if (selectSort) {
+      selectSort.addEventListener('change', renderRoomTable);
+    }
 
     // Search Box
     inputSearchRoom.addEventListener('input', e => {
