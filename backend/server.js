@@ -899,8 +899,12 @@ function handleShortcutRead(req, res, returnUnifiedObject = false) {
 
     // Generate formatted single-string display for easy iOS Shortcut popup
     const formattedLines = decryptedMessages.map(m => {
-      const time = new Date(m.timestamp).toLocaleTimeString(isEn ? "en-US" : "zh-TW", { hour: "2-digit", minute: "2-digit", hour12: false });
-      return `💬 [${time}] ${m.user}: ${m.text}`;
+      const d = new Date(m.timestamp);
+      const timeStr = d.toLocaleTimeString(isEn ? "en-US" : "zh-TW", { hour: "2-digit", minute: "2-digit", hour12: false });
+      const dateStr = isEn
+        ? `${d.toLocaleDateString("en-US", { month: "short" })} ${d.getDate()}`
+        : `${d.getMonth() + 1}/${d.getDate()}`;
+      return `💬 [${dateStr} ${timeStr}] ${m.user}: ${m.text}`;
     });
     const formattedText = formattedLines.length > 0
       ? formattedLines.join("\n")

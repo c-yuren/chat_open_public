@@ -823,6 +823,46 @@
       to { opacity: 1; transform: scale(1.05); }
     }
 
+    /* Date Divider */
+    .msg-date-divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 18px 0 10px;
+      width: 100%;
+      position: relative;
+      text-align: center;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .msg-date-divider::before {
+      content: '';
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      top: 50%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08) 20%, rgba(255, 255, 255, 0.08) 80%, transparent);
+      z-index: 1;
+    }
+
+    .msg-date-pill {
+      position: relative;
+      z-index: 2;
+      background: rgba(30, 31, 35, 0.88);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      color: #9ca3af;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 3px 12px;
+      border-radius: 9999px;
+      letter-spacing: 0.02em;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    }
+
     /* Floating Scroll-to-Bottom Pill */
     .scroll-bottom-pill {
       position: absolute;
@@ -1453,7 +1493,7 @@
       <div class="settings-section danger">
         <div class="settings-row" style="border: none; padding: 0;">
           <div>
-            <div class="settings-label" id="lblDanger" style="color: #f87171;">離開聊天室</div>
+            <div class="settings-label" id="secTitleDanger" style="color: #f87171;">離開聊天室</div>
             <div class="settings-subtext" id="descDanger">清除本機記憶與加密金鑰</div>
           </div>
           <button class="btn-banner" id="btnSettingsLeave" style="background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.3); color: #f87171;">🚪 離開房間</button>
@@ -1904,12 +1944,27 @@
       if (lblPrefLang) lblPrefLang.textContent = t('settingsLabelLang');
       const descPrefLang = $('#descPrefLang');
       if (descPrefLang) descPrefLang.textContent = t('settingsDescLang');
-      const secTitleDanger = $('#secTitleDanger');
+      const secTitleDanger = $('#secTitleDanger') || $('#lblDanger');
       if (secTitleDanger) secTitleDanger.textContent = t('settingsSectionDanger');
       const descDanger = $('#descDanger');
       if (descDanger) descDanger.textContent = t('settingsDangerDesc');
       const btnLeave = $('#btnSettingsLeave');
       if (btnLeave) btnLeave.textContent = t('settingsBtnLeave');
+
+      // Update existing date dividers and message timestamps
+      messagesBox.querySelectorAll('.msg-date-divider').forEach(div => {
+        const ts = div.dataset.timestamp;
+        const pill = div.querySelector('.msg-date-pill');
+        if (ts && pill) {
+          pill.textContent = formatDateDivider(ts, currentLang);
+        }
+      });
+      messagesBox.querySelectorAll('.msg-time').forEach(el => {
+        const ts = el.dataset.timestamp;
+        if (ts) {
+          el.textContent = formatMessageTime(ts, currentLang);
+        }
+      });
 
       updateNicknameUI();
     }
@@ -2355,7 +2410,7 @@
 
       updateNicknameUI();
 
-      messagesBox.querySelectorAll('.msg-group').forEach(el => el.remove());
+      messagesBox.querySelectorAll('.msg-group, .msg-date-divider').forEach(el => el.remove());
       emptyState.style.display = 'flex';
 
       startPolling();
@@ -2373,7 +2428,7 @@
       currentRoom = { roomId: null, slot: 1, token: null, token2: null, cryptoKey: null, rawKeyB64: null };
       knownMessageIds.clear();
       localStorage.removeItem('ren_active_room');
-      messagesBox.querySelectorAll('.msg-group').forEach(el => el.remove());
+      messagesBox.querySelectorAll('.msg-group, .msg-date-divider').forEach(el => el.remove());
       emptyState.style.display = 'flex';
       msgInput.value = '';
       autoResizeInput();
@@ -2538,21 +2593,90 @@
       }
     }
 
+    function formatDateDivider(timestamp, lang = currentLang) {
+      if (!timestamp) return '';
+      const d = new Date(timestamp);
+      const now = new Date();
+      const isSameDay = (d1, d2) => 
+        d1.getFullYear() === d2.getFullYear() &&
+        d1.getMonth() === d2.getMonth() &&
+        d1.getDate() === d2.getDate();
+      
+      const yesterday = new Date(now);
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      if (lang === 'zh') {
+        if (isSameDay(d, now)) {
+          return `今天 · ${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+        } else if (isSameDay(d, yesterday)) {
+          return `昨天 · ${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+        }
+        const days = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
+        return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日 ${days[d.getDay()]}`;
+      } else {
+        if (isSameDay(d, now)) {
+          const datePart = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+          return `Today · ${datePart}`;
+        } else if (isSameDay(d, yesterday)) {
+          const datePart = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+          return `Yesterday · ${datePart}`;
+        }
+        return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+      }
+    }
+
+    function formatMessageTime(timestamp, lang = currentLang) {
+      if (!timestamp) return '';
+      const d = new Date(timestamp);
+      const timeStr = d.toLocaleTimeString(lang === 'zh' ? 'zh-TW' : 'en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+      if (lang === 'zh') {
+        return `${d.getMonth() + 1}/${d.getDate()} ${timeStr}`;
+      } else {
+        const month = d.toLocaleDateString('en-US', { month: 'short' });
+        return `${month} ${d.getDate()}, ${timeStr}`;
+      }
+    }
+
+    function ensureDateDivider(timestamp) {
+      if (!timestamp) return;
+      const d = new Date(timestamp);
+      const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      
+      const existing = messagesBox.querySelector(`.msg-date-divider[data-date="${dateKey}"]`);
+      if (!existing) {
+        const divider = document.createElement('div');
+        divider.className = 'msg-date-divider';
+        divider.dataset.date = dateKey;
+        divider.dataset.timestamp = timestamp;
+        
+        const pill = document.createElement('span');
+        pill.className = 'msg-date-pill';
+        pill.textContent = formatDateDivider(timestamp, currentLang);
+        divider.appendChild(pill);
+        
+        messagesBox.appendChild(divider);
+      }
+    }
+
     function renderMessageBubble(text, isSelf, timestamp, id, senderSlot, customDisplayName, status = 'sent') {
+      ensureDateDivider(timestamp);
+
       const group = document.createElement('div');
       group.className = `msg-group ${isSelf ? 'self' : 'peer'}`;
       if (id) group.dataset.id = id;
+      if (timestamp) group.dataset.timestamp = timestamp;
 
-      const timeStr = timestamp ? new Date(timestamp).toLocaleTimeString(currentLang === 'zh' ? 'zh-TW' : 'en-US', { hour: '2-digit', minute: '2-digit' }) : '';
+      const formattedTime = formatMessageTime(timestamp, currentLang);
       const displayName = customDisplayName || (isSelf ? t('defaultMyNick') : t('defaultPeerNick'));
 
       const meta = document.createElement('div');
       meta.className = 'msg-meta';
-      meta.innerHTML = `<span>${displayName}</span><span>·</span><span>${timeStr}</span>`;
+      meta.innerHTML = `<span>${displayName}</span><span>·</span><span class="msg-time" data-timestamp="${timestamp || ''}">${formattedTime}</span>`;
 
       const bubble = document.createElement('div');
       bubble.className = 'msg-bubble';
-      bubble.title = t('copiedToast');
+      const fullDateTip = timestamp ? new Date(timestamp).toLocaleString(currentLang === 'zh' ? 'zh-TW' : 'en-US') : '';
+      bubble.title = fullDateTip ? `${fullDateTip} - ${t('copiedToast')}` : t('copiedToast');
 
       const textSpan = document.createElement('span');
       textSpan.textContent = text;
@@ -2567,7 +2691,7 @@
 
       // Tap to copy with haptic feedback
       bubble.addEventListener('click', () => {
-        copyToClipboard(text, '訊息已複製');
+        copyToClipboard(text, t('copiedToast'));
         if (navigator.vibrate) navigator.vibrate(10);
       });
 
@@ -2578,7 +2702,7 @@
       // Smart auto-scroll handling
       if (isUserScrolledUp) {
         scrollBottomPill.classList.add('visible');
-        scrollBottomText.textContent = '↓ New message';
+        scrollBottomText.textContent = t('scrollBottomText');
       } else {
         messagesBox.scrollTop = messagesBox.scrollHeight;
       }
