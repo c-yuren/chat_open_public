@@ -69,14 +69,9 @@ chat_open/
 ├── frontend/
 │   ├── index.html
 │   └── monitor.html
-├── index.html
-├── monitor.html
 ├── vercel.json
-├── ORACLE_CONFIG.md
 └── README.md
 ```
-
-`frontend/index.html` 與根目錄 `index.html` 必須保持同步；`frontend/monitor.html` 與根目錄 `monitor.html` 也必須保持同步。
 
 ## 本機開發
 
