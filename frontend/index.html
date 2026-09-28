@@ -1,0 +1,2474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>私人聊天室</title>
+  
+  <!-- Apple iOS PWA Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="私人聊天室">
+  <meta name="theme-color" content="#8B9A6E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+
+  <style>
+    /* ============================================================
+      淺色橄欖米白介面
+       ============================================================ */
+    :root {
+      --bg-primary: #F7F2EB;
+      --bg-secondary: #EAE2D6;
+      --bg-card: rgba(255, 255, 255, 0.78);
+      --bg-card-hover: rgba(255, 255, 255, 0.96);
+      --bg-input: #EEEEEE;
+      --bg-bubble-self: #8B9A6E;
+      --bg-bubble-peer: #EAE2D6;
+
+      --surface: rgba(27, 60, 83, 0.06);
+      --surface-hover: rgba(27, 60, 83, 0.11);
+      --border: rgba(27, 60, 83, 0.14);
+      --border-focus: rgba(139, 154, 110, 0.8);
+
+      --text-primary: #1B3C53;
+      --text-secondary: #456882;
+      --text-muted: #456882;
+
+      --accent: #8B9A6E;
+      --accent-hover: #6f7f55;
+      --accent-glow: rgba(139, 154, 110, 0.28);
+
+      --success: #456882;
+      --success-glow: rgba(69, 104, 130, 0.2);
+      --warning: #8B9A6E;
+      --danger: #9b4d4d;
+
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-full: 9999px;
+
+      --font: 'Inter', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: var(--font);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+      overflow: hidden;
+      touch-action: manipulation;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Ambient Soft Radial Glow Background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 600px 450px at 15% 15%, rgba(139, 154, 110, 0.18), transparent),
+        radial-gradient(ellipse 550px 550px at 85% 85%, rgba(234, 226, 214, 0.9), transparent);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    #app {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      max-width: min(1180px, calc(100vw - 48px));
+      margin: 0 auto;
+      width: 100%;
+      background: rgba(247, 242, 235, 0.86);
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      box-shadow: 0 0 60px rgba(27, 60, 83, 0.12);
+    }
+
+    /* ============================================================
+       Header
+       ============================================================ */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 18px;
+      padding-top: max(12px, env(safe-area-inset-top));
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      background: rgba(247, 242, 235, 0.92);
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      gap: 12px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .badge-e2ee {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: var(--radius-full);
+      background: rgba(16, 185, 129, 0.14);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #8B9A6E;
+      letter-spacing: 0.04em;
+    }
+
+    .room-badge {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-full);
+      padding: 4px 10px;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      color: var(--text-secondary);
+      max-width: 130px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    /* Nickname Badge in Header */
+    .nickname-badge {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      background: rgba(139, 154, 110, 0.14);
+      border: 1px solid rgba(139, 154, 110, 0.42);
+      color: var(--text-primary);
+      padding: 5px 12px;
+      border-radius: var(--radius-full);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s var(--ease);
+      max-width: 140px;
+    }
+
+    .nickname-badge:hover {
+      background: rgba(139, 154, 110, 0.24);
+      border-color: rgba(139, 154, 110, 0.65);
+      color: var(--text-primary);
+      transform: translateY(-1px);
+    }
+
+    .nickname-badge span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Header Action Buttons */
+    .btn-header-action {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: 5px 13px;
+      border-radius: var(--radius-full);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.2s var(--ease);
+      flex-shrink: 0;
+    }
+
+    .btn-header-action:hover {
+      background: var(--surface-hover);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+    }
+
+    .btn-header-action.primary {
+      background: #8B9A6E;
+      border-color: #8B9A6E;
+      color: #ffffff;
+      box-shadow: 0 2px 10px rgba(139, 154, 110, 0.28);
+    }
+
+    .btn-header-action.primary:hover {
+      background: #6f7f55;
+      box-shadow: 0 4px 16px rgba(139, 154, 110, 0.4);
+    }
+
+    .btn-icon {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-full);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s var(--ease);
+      flex-shrink: 0;
+    }
+
+    .btn-icon:hover {
+      background: var(--surface-hover);
+      border-color: rgba(255, 255, 255, 0.18);
+      transform: translateY(-1px);
+    }
+
+    .btn-icon.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      box-shadow: 0 0 14px var(--accent-glow);
+    }
+
+    .btn-icon.primary:hover {
+      background: var(--accent-hover);
+    }
+
+    /* ============================================================
+       Settings Modal Components
+       ============================================================ */
+    .settings-section {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+    }
+
+    .settings-section.danger {
+      background: rgba(239, 68, 68, 0.04);
+      border-color: rgba(239, 68, 68, 0.25);
+    }
+
+    .settings-section-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+    }
+
+    .settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 0;
+    }
+
+    .settings-row:not(:last-child) {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      margin-bottom: 6px;
+    }
+
+    .settings-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .settings-subtext {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .settings-tool-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 8px;
+    }
+
+    .settings-tool-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 6px;
+      cursor: pointer;
+      color: var(--text-primary);
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .settings-tool-card:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(139, 154, 110, 0.55);
+      transform: translateY(-1px);
+    }
+
+    .shortcut-steps {
+      display: grid;
+      gap: 8px;
+      margin: 12px 0 14px;
+    }
+
+    .shortcut-step {
+      display: grid;
+      grid-template-columns: 28px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      padding: 11px 12px;
+      background: rgba(255, 255, 255, 0.5);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+
+    .shortcut-step-number {
+      width: 26px;
+      height: 26px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .shortcut-step-title {
+      color: var(--text-primary);
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 3px;
+    }
+
+    .shortcut-step-copy {
+      color: var(--text-secondary);
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .shortcut-step-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 8px;
+      padding: 7px 10px;
+      border: 1px solid rgba(139, 154, 110, 0.48);
+      border-radius: 8px;
+      background: rgba(139, 154, 110, 0.16);
+      color: var(--text-primary);
+      font: inherit;
+      font-size: 11px;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .shortcut-step-action:hover {
+      background: rgba(139, 154, 110, 0.28);
+    }
+
+    .shortcut-mock {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 7px;
+    }
+
+    .shortcut-mock span {
+      padding: 3px 7px;
+      border-radius: 6px;
+      background: rgba(69, 104, 130, 0.1);
+      border: 1px solid rgba(69, 104, 130, 0.2);
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: 10px;
+    }
+
+    .settings-tool-card .tool-icon {
+      font-size: 20px;
+    }
+
+    .settings-tool-card strong {
+      font-size: 12px;
+      display: block;
+    }
+
+    .settings-tool-card span {
+      font-size: 10px;
+      color: var(--text-muted);
+      display: block;
+      margin-top: 2px;
+    }
+
+    .btn-banner {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: inherit;
+      padding: 3px 9px;
+      border-radius: var(--radius-full);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-banner:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* ============================================================
+       Main View Containers
+       ============================================================ */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Lobby View */
+    #lobbyView {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 24px;
+      text-align: center;
+      overflow-y: auto;
+    }
+
+    .hero-icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(168, 85, 247, 0.1) 100%);
+      border: 1px solid rgba(139, 92, 246, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 34px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 32px var(--accent-glow);
+    }
+
+    .hero-title {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+    }
+
+    .hero-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      max-width: 440px;
+      line-height: 1.5;
+      margin-bottom: 28px;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      max-width: 480px;
+      width: 100%;
+      margin-bottom: 32px;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      text-align: left;
+      font-size: 12px;
+    }
+
+    .feature-card strong {
+      display: block;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+      font-size: 13px;
+    }
+
+    .feature-card span {
+      color: var(--text-muted);
+      line-height: 1.4;
+      display: block;
+    }
+
+    .lobby-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+      max-width: 380px;
+    }
+
+    .btn-create {
+      background: var(--bg-bubble-self);
+      color: white;
+      border: none;
+      padding: 14px 22px;
+      border-radius: var(--radius-md);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 0 24px var(--accent-glow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s var(--ease);
+    }
+
+    .btn-create:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 32px rgba(139, 92, 246, 0.5);
+    }
+
+    .btn-create:active {
+      transform: translateY(0);
+    }
+
+    .join-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--text-muted);
+      font-size: 12px;
+      margin: 4px 0;
+    }
+
+    .join-divider::before, .join-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .join-box {
+      display: flex;
+      gap: 8px;
+    }
+
+    .input-text {
+      flex: 1;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      color: var(--text-primary);
+      font-size: 13px;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .input-text:focus {
+      border-color: var(--border-focus);
+      background: #FFFFFF;
+    }
+
+    .btn-join {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: 12px 18px;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .btn-join:hover {
+      background: var(--surface-hover);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* ============================================================
+       Chat View
+       ============================================================ */
+    #chatView {
+      flex: 1;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      scroll-behavior: smooth;
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: auto;
+      padding: 24px;
+      text-align: center;
+      max-width: 380px;
+    }
+
+    .empty-icon {
+      font-size: 38px;
+      margin-bottom: 12px;
+      opacity: 0.85;
+    }
+
+    .empty-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .empty-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.45;
+      margin-bottom: 16px;
+    }
+
+    /* Message Bubbles */
+    .msg-group {
+      display: flex;
+      flex-direction: column;
+      max-width: 82%;
+      animation: msgPop 0.25s var(--ease) forwards;
+    }
+
+    @keyframes msgPop {
+      from { opacity: 0; transform: translateY(8px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .msg-group.self {
+      align-self: flex-end;
+      align-items: flex-end;
+    }
+
+    .msg-group.peer {
+      align-self: flex-start;
+      align-items: flex-start;
+    }
+
+    .msg-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+      padding: 0 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .msg-bubble {
+      padding: 10px 14px;
+      font-size: 14px;
+      line-height: 1.45;
+      word-break: break-word;
+      white-space: pre-wrap;
+      position: relative;
+      user-select: text;
+      cursor: pointer;
+      transition: transform 0.1s ease, filter 0.15s ease;
+    }
+
+    .msg-bubble:active {
+      transform: scale(0.985);
+      filter: brightness(1.15);
+    }
+
+    .msg-group.self .msg-bubble {
+      background: var(--bg-bubble-self);
+      color: white;
+      border-radius: 18px 18px 4px 18px;
+      box-shadow: 0 2px 10px rgba(124, 58, 237, 0.25);
+    }
+
+    .msg-group.peer .msg-bubble {
+      background: var(--bg-bubble-peer);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+      border-radius: 18px 18px 18px 4px;
+    }
+
+    .msg-synced-badge {
+      font-size: 9px;
+      padding: 1px 5px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+      margin-left: 4px;
+      font-weight: 500;
+    }
+
+    /* Message Status Ticks (Optimistic UI) */
+    .msg-status-tick {
+      font-size: 10px;
+      margin-left: 6px;
+      opacity: 0.8;
+      display: inline-flex;
+      align-items: center;
+      vertical-align: middle;
+      user-select: none;
+    }
+
+    .msg-status-tick.pending {
+      animation: pendingPulse 0.9s infinite alternate ease-in-out;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .msg-status-tick.sent {
+      color: #8B9A6E;
+    }
+
+    .msg-status-tick.error {
+      color: #ef4444;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    @keyframes pendingPulse {
+      from { opacity: 0.35; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1.05); }
+    }
+
+    /* Floating Scroll-to-Bottom Pill */
+    .scroll-bottom-pill {
+      position: absolute;
+      bottom: 74px;
+      left: 50%;
+      transform: translateX(-50%) translateY(25px);
+      background: rgba(27, 60, 83, 0.96);
+      border: 1px solid var(--border-focus);
+      color: var(--text-primary);
+      padding: 6px 14px;
+      border-radius: var(--radius-full);
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 14px var(--accent-glow);
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.25s var(--ease);
+      z-index: 25;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+
+    .scroll-bottom-pill.visible {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .scroll-bottom-pill:hover {
+      background: #234C6A;
+      transform: translateX(-50%) translateY(-2px);
+    }
+
+    /* ============================================================
+       Input Bar
+       ============================================================ */
+    .input-bar {
+      padding: 10px 14px;
+      padding-bottom: max(10px, env(safe-area-inset-bottom));
+      border-top: 1px solid var(--border);
+      background: rgba(247, 242, 235, 0.96);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: relative;
+      z-index: 20;
+    }
+
+    .input-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    .input-textarea-wrapper {
+      flex: 1;
+      position: relative;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-textarea-wrapper:focus-within {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 12px rgba(139, 154, 110, 0.24);
+    }
+
+    #msgInput {
+      width: 100%;
+      min-height: 40px;
+      max-height: 120px;
+      padding: 10px 14px;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-primary);
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.4;
+      resize: none;
+    }
+
+    #msgInput::placeholder {
+      color: var(--text-muted);
+    }
+
+    .btn-send {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      box-shadow: 0 0 16px var(--accent-glow);
+      transition: all 0.2s var(--ease);
+      flex-shrink: 0;
+    }
+
+    .btn-send:hover:not(:disabled) {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-send:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .input-sub-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 6px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .cooldown-text {
+      color: var(--warning);
+      display: none;
+      font-weight: 600;
+    }
+
+    /* ============================================================
+       Modals
+       ============================================================ */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal-card {
+      background: #F7F2EB;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      max-width: 440px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(27, 60, 83, 0.22);
+      position: relative;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .modal-close {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      width: 30px;
+      height: 30px;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .modal-close:hover {
+      color: var(--text-primary);
+      background: var(--surface-hover);
+    }
+
+    .modal-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.45;
+      margin-bottom: 16px;
+    }
+
+    .qr-container {
+      background: white;
+      padding: 14px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px auto;
+      width: fit-content;
+    }
+
+    .qr-container img, .qr-container svg {
+      display: block;
+      width: 180px;
+      height: 180px;
+    }
+
+    .link-copy-box {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .link-input {
+      flex: 1;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-secondary);
+      outline: none;
+      user-select: all;
+    }
+
+    /* Toasts */
+    .toast {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(27, 60, 83, 0.96);
+      border: 1px solid rgba(210, 193, 182, 0.42);
+      color: #F7F2EB;
+      padding: 10px 18px;
+      border-radius: var(--radius-full);
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      z-index: 200;
+      pointer-events: none;
+      animation: toastIn 0.25s var(--ease) forwards;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toast.out {
+      animation: toastOut 0.2s ease forwards;
+    }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translate(-50%, 15px) scale(0.96); }
+      to { opacity: 1; transform: translate(-50%, 0) scale(1); }
+    }
+
+    @keyframes toastOut {
+      from { opacity: 1; transform: translate(-50%, 0) scale(1); }
+      to { opacity: 0; transform: translate(-50%, 10px) scale(0.96); }
+    }
+
+    /* Responsive */
+    @media (min-width: 900px) {
+      header {
+        padding-left: 28px;
+        padding-right: 28px;
+      }
+
+      #messages {
+        padding-left: clamp(28px, 7vw, 96px);
+        padding-right: clamp(28px, 7vw, 96px);
+      }
+
+      .input-bar {
+        padding-left: clamp(28px, 6vw, 82px);
+        padding-right: clamp(28px, 6vw, 82px);
+      }
+
+      #lobbyView {
+        padding-left: clamp(40px, 10vw, 140px);
+        padding-right: clamp(40px, 10vw, 140px);
+      }
+    }
+
+    @media (max-width: 760px) {
+      #app {
+        max-width: none;
+        border-left: none;
+        border-right: none;
+        box-shadow: none;
+      }
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .room-badge {
+        max-width: 90px;
+      }
+      .nickname-badge {
+        max-width: 90px;
+      }
+      .btn-header-action .btn-text {
+        display: none;
+      }
+      .settings-tool-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- Top Navigation Header -->
+    <header>
+      <div class="header-left">
+        <div class="brand-title" id="btnBrand" title="返回聊天室首頁">
+          <span>聊天室</span>
+        </div>
+        <div class="room-badge" id="roomBadge" title="點擊複製房間代碼">
+          <span id="roomCodeText">Room</span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <!-- Essential: Nickname Badge (Tap to edit) -->
+        <div class="nickname-badge" id="nicknameBadge" title="點擊修改我的暱稱">
+          <span id="nicknameText">我</span>
+        </div>
+
+        <!-- Essential: Invite Partner Button -->
+        <button class="btn-header-action primary" id="btnInvitePartner" title="邀請另一半加入" style="display: none;">
+          <span class="btn-text">邀請</span>
+        </button>
+
+        <!-- Essential: Settings & Tools -->
+        <button class="btn-icon" id="btnSettings" title="設定與房間工具" style="display: none;">⚙️</button>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main>
+      <!-- View 1: Lobby (Home Screen) -->
+      <section id="lobbyView">
+        <h1 class="hero-title">建立私人聊天室</h1>
+
+        <div class="lobby-actions">
+          <button class="btn-create" id="btnCreateRoom">
+            <span>建立加密聊天室</span>
+          </button>
+
+          <div class="join-divider">使用邀請連結加入</div>
+
+          <div class="join-box">
+            <input type="text" id="inputJoinLink" class="input-text" placeholder="貼上邀請連結">
+            <button class="btn-join" id="btnJoinManual">加入</button>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- View 2: Active Chat View -->
+      <section id="chatView">
+        <div id="messages">
+          <div class="empty-state" id="emptyState">
+            <div class="empty-icon">🛡️</div>
+            <h3 class="empty-title">房間已啟用端到端加密</h3>
+            <p class="empty-desc">
+              訊息會在瀏覽器端使用 AES-GCM-256 加密後傳送。請建立邀請連結，讓另一位成員加入。
+            </p>
+            <button class="btn-banner" id="btnEmptyInvite">複製邀請連結</button>
+          </div>
+        </div>
+
+        <!-- Floating Scroll to Bottom Pill -->
+        <div class="scroll-bottom-pill" id="scrollBottomPill">
+          <span>↓</span>
+          <span id="scrollBottomText">New messages</span>
+        </div>
+
+        <!-- Input Bar -->
+        <div class="input-bar">
+          <div class="input-row">
+            <div class="input-textarea-wrapper">
+              <textarea id="msgInput" placeholder="輸入訊息（Enter 傳送，Shift+Enter 換行）" rows="1" maxlength="2000"></textarea>
+            </div>
+            <button class="btn-send" id="btnSend" title="傳送（Enter）">↑</button>
+          </div>
+          <div class="input-sub-row">
+            <span class="cooldown-text" id="cooldownText">⏳ Slow down (1.5s)</span>
+            <span id="charCount">0 / 2000</span>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal: Sync Device (For Person 1 or Person 2 to open on their phone/PC) -->
+  <div class="modal-backdrop" id="syncModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">📱 Sync to My Other Device</h3>
+        <button class="modal-close" id="btnCloseSyncModal">&times;</button>
+      </div>
+      <p class="modal-desc">
+        Scan this QR code with your iPhone / phone camera, or open this exact link on your laptop/PC to chat seamlessly as <strong>You</strong> on multiple devices simultaneously.
+      </p>
+      <div class="qr-container" id="syncQrBox"></div>
+      <div class="link-copy-box">
+        <input type="text" id="inputSyncLink" class="link-input" readonly>
+        <button class="btn-banner" id="btnCopySyncLink">📋 Copy</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Invite Partner -->
+  <div class="modal-backdrop" id="inviteModal">
+    <div class="modal-card">
+      <div class="modal-header">
+          <h3 class="modal-title">邀請另一位成員</h3>
+        <button class="modal-close" id="btnCloseInviteModal">&times;</button>
+      </div>
+      <p class="modal-desc">
+        將此邀請連結提供給另一位成員。房間只接受兩位成員，金鑰會保留在網址片段中，不會送到伺服器。
+      </p>
+      <div class="qr-container" id="inviteQrBox"></div>
+      <div class="link-copy-box">
+        <input type="text" id="inputInviteLink" class="link-input" readonly>
+        <button class="btn-banner" id="btnCopyInviteLink">📋 Copy</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: iOS Shortcuts Setup -->
+  <div class="modal-backdrop" id="shortcutsModal">
+    <div class="modal-card" style="max-width: 520px; max-height: 85vh; overflow-y: auto;">
+      <div class="modal-header">
+        <h3 class="modal-title">📲 iOS 捷徑（Apple Shortcuts）設定</h3>
+        <button class="modal-close" id="btnCloseShortcutsModal">&times;</button>
+      </div>
+      <div style="font-size: 12px; line-height: 1.6; color: var(--text-secondary); background: rgba(255,255,255,0.42); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 14px;">
+        <strong style="color: var(--text-primary); display: block;">使用教學</strong>
+        <div class="shortcut-steps">
+          <div class="shortcut-step">
+            <span class="shortcut-step-number">1</span>
+            <div>
+              <div class="shortcut-step-title">安裝捷徑</div>
+              <div class="shortcut-step-copy">開啟 Apple 捷徑頁面，點擊「取得捷徑」，再選擇加入捷徑。</div>
+              <a class="shortcut-step-action" href="https://www.icloud.com/shortcuts/d3c94c3468554c9b9abf38c9a09e186e" target="_blank" rel="noopener">開啟捷徑安裝頁</a>
+            </div>
+          </div>
+          <div class="shortcut-step">
+            <span class="shortcut-step-number">2</span>
+            <div>
+              <div class="shortcut-step-title">複製連結、貼上並設定暱稱</div>
+              <div class="shortcut-step-copy">先複製目前聊天室的連結。安裝後第一次執行，貼上連結，再輸入你要顯示的使用者暱稱。</div>
+              <button class="shortcut-step-action" id="btnCopyShortcutRoomLink" type="button">複製目前房間連結</button>
+            </div>
+          </div>
+          <div class="shortcut-step">
+            <span class="shortcut-step-number">3</span>
+            <div>
+              <div class="shortcut-step-title">選擇傳送或查看</div>
+              <div class="shortcut-step-copy">日後打開捷徑後，選擇「傳送訊息」輸入內容，或選擇「查看訊息」讀取最新對話。</div>
+            </div>
+          </div>
+        </div>
+        <p style="margin-top: 10px; color: var(--text-muted);">第一次設定完成後，之後只要開啟捷徑並選擇操作即可。</p>
+      </div>
+
+      <div style="font-size: 12px; line-height: 1.6; color: var(--text-secondary); background: rgba(69, 104, 130, 0.08); border: 1px solid rgba(69, 104, 130, 0.2); border-radius: 12px; padding: 12px; margin-bottom: 14px;">
+        <strong style="color: var(--text-primary);">小提醒</strong><br>
+        邀請連結包含房間識別與加密資訊，請只分享給聊天室成員。若要換房間，重新執行捷徑並輸入新的邀請連結即可。
+      </div>
+
+      <!-- Connection Parameters Table (Collapsible) -->
+      <details style="display: none; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; font-size: 12px; color: var(--text-muted); margin-bottom: 6px;">
+        <summary style="cursor: pointer; font-weight: 600; color: var(--text-secondary); outline: none;">
+          🔍 查看進階各別參數 (手動設定用)
+        </summary>
+        <table style="width: 100%; border-collapse: collapse; line-height: 1.7; margin-top: 8px;">
+          <tr>
+            <td style="color: var(--text-muted); width: 85px;">API 網址:</td>
+            <td style="font-family: var(--font-mono); color: #c4b5fd; word-break: break-all;" id="scApiUrl">https://open-shortcut-chat.duckdns.org/api/shortcut/send</td>
+          </tr>
+          <tr>
+            <td style="color: var(--text-muted);">Authorization:</td>
+            <td style="font-family: var(--font-mono); color: var(--text-secondary); word-break: break-all;" id="scAuthToken">Bearer ...</td>
+          </tr>
+          <tr>
+            <td style="color: var(--text-muted);">Room ID:</td>
+            <td style="font-family: var(--font-mono); color: var(--text-secondary);" id="scRoomId">...</td>
+          </tr>
+          <tr>
+            <td style="color: var(--text-muted);">Key:</td>
+            <td style="font-family: var(--font-mono); color: var(--text-secondary); word-break: break-all;" id="scKey">...</td>
+          </tr>
+        </table>
+      </details>
+    </div>
+  </div>
+
+  <!-- Modal: Nickname Prompt -->
+  <div class="modal-backdrop" id="nicknameModal">
+    <div class="modal-card" style="max-width: 380px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="nicknameModalTitle">👤 設定聊天暱稱</h3>
+        <button class="modal-close" id="btnCloseNicknameModal" style="display: none;">&times;</button>
+      </div>
+      <p class="modal-desc" id="nicknameModalDesc">
+        請輸入你在本房間內顯示的暱稱，對方將能看見此名稱：
+      </p>
+      <form id="nicknameForm" onsubmit="return false;" style="margin-top: 14px;">
+        <input type="text" id="inputNickname" class="input-text" placeholder="例如：小明" maxlength="20" style="margin-bottom: 14px; font-size: 15px; padding: 12px 14px; width: 100%; box-sizing: border-box;" required autocomplete="off">
+        <div style="display: flex; gap: 8px; justify-content: flex-end;">
+          <button type="button" class="btn-banner" id="btnCancelNickname" style="padding: 10px 18px; font-size: 13px; display: none;">取消</button>
+          <button type="submit" class="btn-create" id="btnConfirmNickname" style="padding: 10px 22px; font-size: 14px; flex: 1; border-radius: var(--radius-sm);">確認</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Settings & Room Tools -->
+  <div class="modal-backdrop" id="settingsModal">
+    <div class="modal-card" style="max-width: 480px; max-height: 85vh; overflow-y: auto;">
+      <div class="modal-header">
+        <h3 class="modal-title">⚙️ 設定與房間工具</h3>
+        <button class="modal-close" id="btnCloseSettingsModal">&times;</button>
+      </div>
+
+      <!-- Section: Profile & Room -->
+      <div class="settings-section">
+        <div class="settings-section-title">👤 個人與房間</div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">我的暱稱</div>
+            <div class="settings-subtext" id="settingsNickDisplay">我</div>
+          </div>
+          <button class="btn-banner" id="btnSettingsEditNick">✏️ 修改暱稱</button>
+        </div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">房間代碼</div>
+            <div class="settings-subtext" style="font-family: var(--font-mono);" id="settingsRoomDisplay">r_xxxxxxxx</div>
+          </div>
+          <button class="btn-banner" id="btnSettingsCopyRoom">📋 複製代碼</button>
+        </div>
+        <div class="settings-row" style="flex-direction: column; align-items: stretch; gap: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="settings-label">訊息儲存容量 (FIFO 50則滾動)</div>
+            <span class="settings-subtext" style="font-family: var(--font-mono); font-weight: 700; color: #8B9A6E;" id="settingsCapacityText">0 / 50</span>
+          </div>
+          <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden;">
+            <div id="settingsCapacityFill" style="height: 100%; width: 0%; background: #8B9A6E; transition: width 0.3s ease, background 0.3s ease;"></div>
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">
+            SQLite 記憶體自動限制 50 則訊息，超額時自動永久抹除最舊訊息，確保極致隱私與伺服器零負擔。
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: Tools & Sync -->
+      <div class="settings-section">
+        <div class="settings-section-title">捷徑工具</div>
+        <div class="settings-tool-grid">
+          <div class="settings-tool-card" id="btnToolShortcuts">
+            <span class="tool-icon">📲</span>
+            <div>
+              <strong>iOS 捷徑</strong>
+              <span>使用捷徑傳送或查看訊息</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: Preferences -->
+      <div class="settings-section">
+        <div class="settings-section-title">🔊 偏好設定</div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">新訊息提示音</div>
+            <div class="settings-subtext">收到新訊息時播放清脆音效</div>
+          </div>
+          <button class="btn-banner" id="btnToggleSound">🔊 開啟</button>
+        </div>
+      </div>
+
+      <!-- Section: Danger Zone -->
+      <div class="settings-section danger">
+        <div class="settings-row" style="border: none; padding: 0;">
+          <div>
+            <div class="settings-label" style="color: #f87171;">離開聊天室</div>
+            <div class="settings-subtext">清除本機記憶與加密金鑰</div>
+          </div>
+          <button class="btn-banner" id="btnSettingsLeave" style="background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.3); color: #f87171;">🚪 離開房間</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // ============================================================
+    //  State & Constants
+    // ============================================================
+    const DEFAULT_API_URL = window.location.origin;
+    const API_URL = (localStorage.getItem('ren_api_url') || DEFAULT_API_URL).replace(/\/+$/, '');
+    const SEND_COOLDOWN_MS = 1200;
+
+    let currentRoom = {
+      roomId: null,
+      slot: 1,      // 1: You (Creator), 2: Partner
+      token: null,  // Member slot token
+      token2: null, // Partner slot token (known to creator)
+      cryptoKey: null,
+      rawKeyB64: null,
+    };
+
+    let knownMessageIds = new Set();
+    let pollIntervalTimer = null;
+    let isPolling = false;
+    let lastSendTimestamp = 0;
+    let isSoundEnabled = localStorage.getItem('ren_sound') !== 'false';
+
+    // DOM Elements
+    const $ = s => document.querySelector(s);
+    const lobbyView = $('#lobbyView');
+    const chatView = $('#chatView');
+    const roomBadge = $('#roomBadge');
+    const roomCodeText = $('#roomCodeText');
+    const nicknameBadge = $('#nicknameBadge');
+    const nicknameText = $('#nicknameText');
+    const btnInvitePartner = $('#btnInvitePartner');
+    const btnSettings = $('#btnSettings');
+    const scrollBottomPill = $('#scrollBottomPill');
+    const scrollBottomText = $('#scrollBottomText');
+    const messagesBox = $('#messages');
+    const emptyState = $('#emptyState');
+    const msgInput = $('#msgInput');
+    const btnSend = $('#btnSend');
+    const charCount = $('#charCount');
+    const cooldownText = $('#cooldownText');
+
+    let isUserScrolledUp = false;
+    let unreadCount = 0;
+    const baseTitle = '私人聊天室';
+
+    // Modals
+    const syncModal = $('#syncModal');
+    const inviteModal = $('#inviteModal');
+    const shortcutsModal = $('#shortcutsModal');
+    const settingsModal = $('#settingsModal');
+    const nicknameModal = $('#nicknameModal');
+
+    function updateCounterUI(count) {
+      const max = 50;
+      const current = count || 0;
+      const text = $('#settingsCapacityText');
+      const fill = $('#settingsCapacityFill');
+      if (text) text.textContent = `${current} / ${max}`;
+      if (fill) {
+        const pct = Math.min(100, Math.round((current / max) * 100));
+        fill.style.width = `${pct}%`;
+        if (current >= 45) fill.style.background = '#ef4444';
+        else if (current >= 35) fill.style.background = '#D2C1B6';
+        else fill.style.background = '#8B9A6E';
+      }
+    }
+
+    // ============================================================
+    //  Nickname State & Prompt Logic
+    // ============================================================
+    let nicknameResolve = null;
+
+    function getMyNickname() {
+      const saved = localStorage.getItem('ren_nickname');
+      if (saved && saved.trim().toLowerCase() === 'ren') {
+        localStorage.setItem('ren_nickname', '我');
+        return '我';
+      }
+      return saved || '我';
+    }
+
+    function updateNicknameUI(name) {
+      const nick = name || getMyNickname();
+      if (nicknameText) nicknameText.textContent = nick;
+      const nickDisplay = $('#settingsNickDisplay');
+      if (nickDisplay) nickDisplay.textContent = nick;
+    }
+
+    function promptNickname({ title = '👤 設定聊天暱稱', desc = '請輸入你在本房間內顯示的暱稱：', defaultVal = '', canCancel = false } = {}) {
+      return new Promise((resolve) => {
+        const titleEl = $('#nicknameModalTitle');
+        const descEl = $('#nicknameModalDesc');
+        const inputEl = $('#inputNickname');
+        const cancelBtn = $('#btnCancelNickname');
+        const closeBtn = $('#btnCloseNicknameModal');
+
+        if (titleEl) titleEl.textContent = title;
+        if (descEl) descEl.textContent = desc;
+
+        const saved = defaultVal || '';
+        if (inputEl) inputEl.value = saved;
+
+        if (cancelBtn) cancelBtn.style.display = canCancel ? 'inline-flex' : 'none';
+        if (closeBtn) closeBtn.style.display = canCancel ? 'inline-flex' : 'none';
+
+        nicknameModal.style.display = 'flex';
+        setTimeout(() => {
+          if (inputEl) {
+            inputEl.focus();
+            inputEl.select();
+          }
+        }, 50);
+
+        nicknameResolve = resolve;
+      });
+    }
+
+    function handleNicknameSubmit() {
+      const inputEl = $('#inputNickname');
+      let val = inputEl ? inputEl.value.trim() : '';
+      if (!val || val.toLowerCase() === 'ren') val = '我';
+      localStorage.setItem('ren_nickname', val);
+      updateNicknameUI(val);
+      nicknameModal.style.display = 'none';
+      if (nicknameResolve) {
+        const res = nicknameResolve;
+        nicknameResolve = null;
+        res(val);
+      }
+    }
+
+    function handleNicknameCancel() {
+      nicknameModal.style.display = 'none';
+      if (nicknameResolve) {
+        const res = nicknameResolve;
+        nicknameResolve = null;
+        res(null);
+      }
+    }
+
+    function notifyNewMessage(sender, text) {
+      if (document.hidden) {
+        unreadCount++;
+        document.title = `(${unreadCount}) 💬 ${sender}: ${text.slice(0, 16)}…`;
+        if ('Notification' in window && Notification.permission === 'granted') {
+          try {
+            new Notification(sender, {
+              body: text,
+              silent: true
+            });
+          } catch {}
+        }
+      }
+    }
+
+    // ============================================================
+    //  Zero-Knowledge Cryptography (AES-GCM-256)
+    // ============================================================
+    function bufferToBase64Url(buf) {
+      const bytes = new Uint8Array(buf);
+      let binary = '';
+      for (let i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+
+    function base64UrlToBuffer(b64url) {
+      if (!b64url || typeof b64url !== 'string') return new ArrayBuffer(0);
+      let b64 = b64url.trim().replace(/\s/g, '+').replace(/-/g, '+').replace(/_/g, '/');
+      while (b64.length % 4) b64 += '=';
+      try {
+        const binary = atob(b64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+          bytes[i] = binary.charCodeAt(i);
+        }
+        return bytes.buffer;
+      } catch (e) {
+        console.error('Failed to decode base64 key:', b64url, e);
+        throw new Error('Invalid encryption key format');
+      }
+    }
+
+    async function generateAESKey() {
+      const raw = crypto.getRandomValues(new Uint8Array(32));
+      const key = await crypto.subtle.importKey(
+        'raw',
+        raw,
+        { name: 'AES-GCM', length: 256 },
+        true,
+        ['encrypt', 'decrypt']
+      );
+      return { key, b64: bufferToBase64Url(raw) };
+    }
+
+    async function importAESKey(b64url) {
+      const buf = base64UrlToBuffer(b64url);
+      return await crypto.subtle.importKey(
+        'raw',
+        buf,
+        { name: 'AES-GCM', length: 256 },
+        true,
+        ['encrypt', 'decrypt']
+      );
+    }
+
+    async function encryptPayload(dataObj, cryptoKey) {
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const enc = new TextEncoder();
+      const encoded = enc.encode(JSON.stringify(dataObj));
+      const ctBuf = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, cryptoKey, encoded);
+      return {
+        ciphertext: btoa(String.fromCharCode(...new Uint8Array(ctBuf))),
+        iv: btoa(String.fromCharCode(...new Uint8Array(iv))),
+      };
+    }
+
+    async function decryptPayload(ciphertextB64, ivB64, cryptoKey) {
+      const ctBytes = Uint8Array.from(atob(ciphertextB64), c => c.charCodeAt(0));
+      const ivBytes = Uint8Array.from(atob(ivB64), c => c.charCodeAt(0));
+      const ptBuf = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: ivBytes }, cryptoKey, ctBytes);
+      const dec = new TextDecoder();
+      return JSON.parse(dec.decode(ptBuf));
+    }
+
+    // ============================================================
+    //  QR Code Generator (Pure JS SVG, zero external leak)
+    // ============================================================
+    function renderQrCode(container, text) {
+      container.innerHTML = '';
+      if (typeof qrcode === 'undefined') {
+        container.innerHTML = '<div style="color:#000;font-size:12px;text-align:center;">QR code unavailable. Please copy the link below.</div>';
+        return;
+      }
+      try {
+        const qr = qrcode(0, 'M');
+        qr.addData(text);
+        qr.make();
+        container.innerHTML = qr.createSvgTag({ scalable: true, margin: 2 });
+      } catch (e) {
+        container.innerHTML = '<div style="color:#000;font-size:12px;text-align:center;">Link too long for QR. Please copy the link below.</div>';
+      }
+    }
+
+    // ============================================================
+    //  Audio Chime & Toast
+    // ============================================================
+    function playChime() {
+      if (!isSoundEnabled) return;
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.12);
+        gain.gain.setValueAtTime(0.06, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.23);
+      } catch {}
+    }
+
+    function toast(text, duration = 2600) {
+      const el = document.createElement('div');
+      el.className = 'toast';
+      el.innerHTML = text;
+      document.body.appendChild(el);
+      setTimeout(() => {
+        el.classList.add('out');
+        setTimeout(() => el.remove(), 250);
+      }, duration);
+    }
+
+    // ============================================================
+    //  API Helper
+    // ============================================================
+    async function apiRequest(endpoint, method = 'GET', body = null) {
+      const url = `${API_URL}${endpoint}`;
+      const headers = { 'Content-Type': 'application/json' };
+      const options = { method, headers };
+      if (body) options.body = JSON.stringify(body);
+
+      const res = await fetch(url, options);
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        const err = new Error(data.error || `HTTP ${res.status}`);
+        err.status = res.status;
+        throw err;
+      }
+      return data;
+    }
+
+    // ============================================================
+    //  Room URLs Generation
+    // ============================================================
+    function getRoomUrl(slot, token) {
+      const base = window.location.origin + window.location.pathname;
+      return `${base}#r=${encodeURIComponent(currentRoom.roomId)}&k=${encodeURIComponent(currentRoom.rawKeyB64)}&u=${slot}&t=${encodeURIComponent(token)}`;
+    }
+
+    function getInvitePartnerUrl() {
+      const token = currentRoom.token2 || currentRoom.token;
+      return getRoomUrl(2, token);
+    }
+
+    function getSyncDeviceUrl() {
+      return getRoomUrl(currentRoom.slot, currentRoom.token);
+    }
+
+    // ============================================================
+    //  Room Actions & State Management (Memory + LocalStorage)
+    // ============================================================
+    function saveRoomToStorage(room) {
+      try {
+        if (!room || !room.roomId || !room.rawKeyB64 || !room.token) return;
+        localStorage.setItem('ren_active_room', JSON.stringify({
+          roomId: room.roomId,
+          slot: room.slot,
+          token: room.token,
+          token2: room.token2 || null,
+          rawKeyB64: room.rawKeyB64
+        }));
+      } catch (e) {
+        console.warn('Could not save room to localStorage:', e);
+      }
+    }
+
+    async function restoreRoomFromStorage() {
+      try {
+        const savedStr = localStorage.getItem('ren_active_room');
+        if (!savedStr) return false;
+        const saved = JSON.parse(savedStr);
+        if (!saved.roomId || !saved.rawKeyB64 || !saved.token) return false;
+
+        toast('正在恢復上一個工作階段…', 1000);
+        const res = await apiRequest('/api/rooms/verify', 'POST', {
+          roomId: saved.roomId,
+          slot: saved.slot,
+          token: saved.token,
+        });
+
+        const cryptoKey = await importAESKey(saved.rawKeyB64);
+        currentRoom = {
+          roomId: saved.roomId,
+          slot: saved.slot,
+          token: saved.token,
+          token2: res.token2 || saved.token2 || (saved.slot === 2 ? saved.token : null),
+          cryptoKey,
+          rawKeyB64: saved.rawKeyB64,
+        };
+
+        const properHash = `r=${encodeURIComponent(saved.roomId)}&k=${encodeURIComponent(saved.rawKeyB64)}&u=${saved.slot}&t=${encodeURIComponent(saved.token)}`;
+        if (window.location.hash !== '#' + properHash) {
+          history.replaceState(null, '', '#' + properHash);
+        }
+
+        enterChatRoom();
+        return true;
+      } catch (err) {
+        console.warn('Could not restore room:', err);
+        localStorage.removeItem('ren_active_room');
+        return false;
+      }
+    }
+
+    async function createRoom() {
+      try {
+        const nick = await promptNickname({
+          title: '🚀 建立聊天室',
+          desc: '請設定你的暱稱，建立房間後將以此名稱與對方通訊：',
+          canCancel: true
+        });
+        if (!nick) return;
+
+        toast('正在建立房間與加密金鑰…', 1500);
+
+        // 1. Request room creation from server
+        const res = await apiRequest('/api/rooms/create', 'POST', {});
+        
+        // 2. Generate local 256-bit AES-GCM Key (NEVER sent to server!)
+        const { key, b64 } = await generateAESKey();
+
+        currentRoom = {
+          roomId: res.roomId,
+          slot: 1, // Creator is Slot 1
+          token: res.token1,
+          token2: res.token2,
+          cryptoKey: key,
+          rawKeyB64: b64,
+        };
+
+        saveRoomToStorage(currentRoom);
+
+        // Update URL hash with encoded components
+        window.location.hash = `r=${encodeURIComponent(res.roomId)}&k=${encodeURIComponent(b64)}&u=1&t=${encodeURIComponent(res.token1)}`;
+
+        enterChatRoom();
+        toast('房間已建立，請複製邀請連結。');
+      } catch (err) {
+        toast(`建立失敗：${err.message}`);
+      }
+    }
+
+    function parseHashParams(customHash = null) {
+      let hash = customHash || window.location.hash;
+      if (!hash) return null;
+
+      // Extract query or hash fragment if user pasted full URL
+      if (hash.includes('#')) {
+        hash = hash.split('#')[1];
+      } else if (hash.includes('?')) {
+        hash = hash.split('?')[1];
+      }
+      hash = hash.replace(/^[#?]/, '').trim();
+      if (!hash) return null;
+
+      const normalized = hash.replace(/[?#]/g, '&');
+      const params = new URLSearchParams(normalized);
+      const roomId = params.get('r') || params.get('room') || params.get('roomId');
+      let keyB64 = params.get('k') || params.get('key');
+      const slot = parseInt(params.get('u') || params.get('slot') || params.get('userSlot') || '2', 10);
+      const token = params.get('t') || params.get('token');
+      const quickSend = params.get('send') || params.get('quickSend');
+
+      if (!roomId || !keyB64 || !token) {
+        return null;
+      }
+
+      keyB64 = keyB64.trim().replace(/\s/g, '+');
+      return { roomId, keyB64, slot, token, quickSend };
+    }
+
+    async function joinRoomFromHash(customHash = null) {
+      const parsed = parseHashParams(customHash);
+      if (!parsed) return false;
+
+      const { roomId, keyB64, slot, token, quickSend } = parsed;
+
+      try {
+        toast('正在連線至房間…', 1200);
+
+        // 1. Verify credentials with server
+        const res = await apiRequest('/api/rooms/verify', 'POST', {
+          roomId,
+          slot,
+          token,
+        });
+
+        // 2. Import local AES-GCM key
+        const cryptoKey = await importAESKey(keyB64);
+
+        currentRoom = {
+          roomId,
+          slot,
+          token,
+          token2: res.token2 || (slot === 2 ? token : null),
+          cryptoKey,
+          rawKeyB64: keyB64,
+        };
+
+        saveRoomToStorage(currentRoom);
+
+        const properHash = `r=${encodeURIComponent(roomId)}&k=${encodeURIComponent(keyB64)}&u=${slot}&t=${encodeURIComponent(token)}`;
+        if (window.location.hash !== '#' + properHash) {
+          history.replaceState(null, '', '#' + properHash);
+        }
+
+        enterChatRoom();
+
+        if (quickSend) {
+          setTimeout(() => {
+            msgInput.value = decodeURIComponent(quickSend);
+            sendMessage();
+          }, 300);
+        }
+        return true;
+      } catch (err) {
+        console.error('Join failed:', err);
+        toast(`加入失敗：${err.message}`);
+        return false;
+      }
+    }
+
+    function enterChatRoom() {
+      stopPolling();
+      knownMessageIds.clear();
+
+      lobbyView.style.display = 'none';
+      chatView.style.display = 'flex';
+      roomBadge.style.display = 'inline-flex';
+      nicknameBadge.style.display = 'inline-flex';
+      btnInvitePartner.style.display = 'inline-flex';
+      btnSettings.style.display = 'inline-flex';
+
+      roomCodeText.textContent = currentRoom.roomId;
+      const settingsRoomDisplay = $('#settingsRoomDisplay');
+      if (settingsRoomDisplay) settingsRoomDisplay.textContent = currentRoom.roomId;
+
+      updateNicknameUI();
+
+      messagesBox.querySelectorAll('.msg-group').forEach(el => el.remove());
+      emptyState.style.display = 'flex';
+
+      startPolling();
+      msgInput.focus();
+    }
+
+    function leaveRoom() {
+      localStorage.removeItem('ren_active_room');
+      showLobby();
+    }
+
+    function showLobby() {
+      stopPolling();
+      currentRoom = { roomId: null, slot: 1, token: null, token2: null, cryptoKey: null, rawKeyB64: null };
+      knownMessageIds.clear();
+      localStorage.removeItem('ren_active_room');
+      messagesBox.querySelectorAll('.msg-group').forEach(el => el.remove());
+      emptyState.style.display = 'flex';
+      msgInput.value = '';
+      autoResizeInput();
+      updateCharCounter();
+
+      history.replaceState(null, '', window.location.pathname);
+
+      lobbyView.style.display = 'flex';
+      chatView.style.display = 'none';
+      roomBadge.style.display = 'none';
+      nicknameBadge.style.display = 'none';
+      btnInvitePartner.style.display = 'none';
+      btnSettings.style.display = 'none';
+    }
+
+    // ============================================================
+    //  Message Polling & Handling
+    // ============================================================
+    function startPolling() {
+      if (isPolling) return;
+      isPolling = true;
+      pollMessages();
+      pollIntervalTimer = setInterval(pollMessages, 1600);
+    }
+
+    function stopPolling() {
+      isPolling = false;
+      if (pollIntervalTimer) {
+        clearInterval(pollIntervalTimer);
+        pollIntervalTimer = null;
+      }
+    }
+
+    async function pollMessages() {
+      if (!currentRoom.roomId || !currentRoom.token || !currentRoom.cryptoKey) return;
+
+      try {
+        const query = `?roomId=${encodeURIComponent(currentRoom.roomId)}&slot=${currentRoom.slot}&token=${encodeURIComponent(currentRoom.token)}`;
+        const res = await apiRequest(`/api/messages${query}`, 'GET');
+
+        if (!res.ok) return;
+
+        // 1. Update message counter gauge in settings modal
+        updateCounterUI(res.count);
+
+        // 2. Decrypt and render any new messages
+        if (res.messages && res.messages.length > 0) {
+          emptyState.style.display = 'none';
+
+          for (const msg of res.messages) {
+            if (knownMessageIds.has(msg.id)) continue;
+            knownMessageIds.add(msg.id);
+
+            try {
+              const payload = await decryptPayload(msg.ciphertext, msg.iv, currentRoom.cryptoKey);
+              const isSelf = msg.sender === currentRoom.slot;
+              const myNick = getMyNickname();
+              const defaultPeerName = currentRoom.slot === 1 ? 'Partner' : 'Creator';
+              const displayName = payload.user || (isSelf ? myNick : defaultPeerName);
+
+              renderMessageBubble(payload.text, isSelf, msg.timestamp, msg.id, msg.sender, displayName, 'sent');
+
+              // Play chime and notify if message is from partner
+              if (!isSelf) {
+                playChime();
+                if (navigator.vibrate) navigator.vibrate(12);
+                notifyNewMessage(displayName, payload.text);
+              }
+            } catch (decErr) {
+              console.warn("Could not decrypt message", msg.id, decErr);
+            }
+          }
+        }
+      } catch (err) {
+        if (err.status === 403 || err.status === 404) {
+          toast('工作階段已失效，請重新加入房間。');
+          showLobby();
+        }
+      }
+    }
+
+    // ============================================================
+    //  Message Sending & Bubble Rendering
+    // ============================================================
+    async function sendMessage() {
+      const text = msgInput.value.trim();
+      if (!text || !currentRoom.roomId || !currentRoom.cryptoKey) return;
+
+      const now = Date.now();
+      if (now - lastSendTimestamp < SEND_COOLDOWN_MS) {
+        cooldownText.style.display = 'inline';
+        setTimeout(() => { cooldownText.style.display = 'none'; }, 1000);
+        return;
+      }
+
+      lastSendTimestamp = now;
+      msgInput.value = '';
+      autoResizeInput();
+      updateCharCounter();
+
+      const tempId = `temp_${now}`;
+      const ts = new Date().toISOString();
+      const myNick = getMyNickname();
+      const tempGroup = renderMessageBubble(text, true, ts, tempId, currentRoom.slot, myNick, 'pending');
+      emptyState.style.display = 'none';
+
+      // Request browser notification permission politely on first send
+      if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
+
+      try {
+        const payload = { text, slot: currentRoom.slot, user: myNick, ts: now };
+        const { ciphertext, iv } = await encryptPayload(payload, currentRoom.cryptoKey);
+
+        const res = await apiRequest('/api/send', 'POST', {
+          roomId: currentRoom.roomId,
+          slot: currentRoom.slot,
+          token: currentRoom.token,
+          ciphertext,
+          iv,
+        });
+
+        if (res && res.id) {
+          knownMessageIds.add(res.id);
+          if (tempGroup) {
+            tempGroup.dataset.id = res.id;
+            const tick = tempGroup.querySelector('.msg-status-tick');
+            if (tick) {
+              tick.className = 'msg-status-tick sent';
+              tick.textContent = '✓';
+            }
+          }
+          updateCounterUI(res.currentCount || 1);
+          if (navigator.vibrate) navigator.vibrate(10);
+        }
+      } catch (err) {
+        if (tempGroup) {
+          const tick = tempGroup.querySelector('.msg-status-tick');
+          if (tick) {
+            tick.className = 'msg-status-tick error';
+            tick.textContent = '⚠️ Tap to retry';
+            tick.onclick = () => {
+              tempGroup.remove();
+              msgInput.value = text;
+              sendMessage();
+            };
+          }
+        }
+          toast(`傳送失敗：${err.message}`);
+      }
+    }
+
+    function renderMessageBubble(text, isSelf, timestamp, id, senderSlot, customDisplayName, status = 'sent') {
+      const group = document.createElement('div');
+      group.className = `msg-group ${isSelf ? 'self' : 'peer'}`;
+      if (id) group.dataset.id = id;
+
+      const timeStr = timestamp ? new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+      const displayName = customDisplayName || (isSelf ? 'You' : 'Partner');
+
+      const meta = document.createElement('div');
+      meta.className = 'msg-meta';
+      meta.innerHTML = `<span>${displayName}</span><span>·</span><span>${timeStr}</span>`;
+
+      const bubble = document.createElement('div');
+      bubble.className = 'msg-bubble';
+      bubble.title = '點擊複製訊息';
+
+      const textSpan = document.createElement('span');
+      textSpan.textContent = text;
+      bubble.appendChild(textSpan);
+
+      if (isSelf) {
+        const tick = document.createElement('span');
+        tick.className = `msg-status-tick ${status}`;
+        tick.textContent = status === 'pending' ? '⏳' : '✓';
+        bubble.appendChild(tick);
+      }
+
+      // Tap to copy with haptic feedback
+      bubble.addEventListener('click', () => {
+        copyToClipboard(text, '訊息已複製');
+        if (navigator.vibrate) navigator.vibrate(10);
+      });
+
+      group.appendChild(meta);
+      group.appendChild(bubble);
+      messagesBox.appendChild(group);
+
+      // Smart auto-scroll handling
+      if (isUserScrolledUp) {
+        scrollBottomPill.classList.add('visible');
+        scrollBottomText.textContent = '↓ New message';
+      } else {
+        messagesBox.scrollTop = messagesBox.scrollHeight;
+      }
+
+      return group;
+    }
+
+    // ============================================================
+    //  UI Utilities & Helpers
+    // ============================================================
+    function autoResizeInput() {
+      msgInput.style.height = 'auto';
+      msgInput.style.height = Math.min(msgInput.scrollHeight, 120) + 'px';
+    }
+
+    function updateCharCounter() {
+      const len = msgInput.value.length;
+      charCount.textContent = `${len} / 2000`;
+    }
+
+    function copyToClipboard(text, successMsg) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => toast(successMsg)).catch(() => promptFallback(text));
+      } else {
+        promptFallback(text);
+      }
+    }
+
+    function promptFallback(text) {
+      window.prompt('Copy this link:', text);
+    }
+
+    // ============================================================
+    //  Modals Controls
+    // ============================================================
+    function openSyncModal() {
+      const url = getSyncDeviceUrl();
+      $('#inputSyncLink').value = url;
+      renderQrCode($('#syncQrBox'), url);
+      syncModal.style.display = 'flex';
+    }
+
+    function openInviteModal() {
+      const url = getInvitePartnerUrl();
+      $('#inputInviteLink').value = url;
+      renderQrCode($('#inviteQrBox'), url);
+      inviteModal.style.display = 'flex';
+    }
+
+    let icloudShortcutUrl = localStorage.getItem('ren_icloud_shortcut') || 'https://www.icloud.com/shortcuts/d3c94c3468554c9b9abf38c9a09e186e';
+
+    function updateIcloudLinkUI() {
+      const linkEl = $('#linkIcloudShortcut');
+      const textEl = $('#textIcloudUrlDisplay');
+      if (linkEl) linkEl.href = icloudShortcutUrl;
+      if (textEl) {
+        textEl.textContent = icloudShortcutUrl.length > 32 ? icloudShortcutUrl.slice(0, 32) + '…' : icloudShortcutUrl;
+      }
+    }
+
+    function openShortcutsModal() {
+      $('#scApiUrl').textContent = `${API_URL}/api/shortcut`;
+      $('#scAuthToken').textContent = `Bearer ${currentRoom.token}`;
+      $('#scRoomId').textContent = currentRoom.roomId;
+      $('#scKey').textContent = currentRoom.rawKeyB64;
+      updateIcloudLinkUI();
+      shortcutsModal.style.display = 'flex';
+    }
+
+    // ============================================================
+    //  Event Listeners
+    // ============================================================
+    $('#btnCreateRoom').addEventListener('click', createRoom);
+
+    async function handleManualJoin() {
+      const val = $('#inputJoinLink').value.trim();
+      if (!val) return;
+      const nick = await promptNickname({
+        title: '👋 加入聊天室',
+        desc: '請設定你的暱稱，進入房間後對方能識別你的訊息：',
+        canCancel: true
+      });
+      if (!nick) return;
+      const joined = await joinRoomFromHash(val);
+      if (joined) {
+        $('#inputJoinLink').value = '';
+        toast('🎉 Successfully joined room!');
+      } else {
+        toast('❌ Invalid invite link or expired room. Please check the link.');
+      }
+    }
+
+    $('#btnJoinManual').addEventListener('click', handleManualJoin);
+
+    $('#inputJoinLink').addEventListener('keydown', e => {
+      if (e.key === 'Enter') handleManualJoin();
+    });
+
+    btnSend.addEventListener('click', sendMessage);
+
+    msgInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    msgInput.addEventListener('input', () => {
+      autoResizeInput();
+      updateCharCounter();
+    });
+
+    // Header actions
+    btnInvitePartner.addEventListener('click', openInviteModal);
+    $('#btnEmptyInvite').addEventListener('click', openInviteModal);
+
+    roomBadge.addEventListener('click', () => {
+      if (currentRoom.roomId) {
+        copyToClipboard(currentRoom.roomId, `📋 房間代碼 ${currentRoom.roomId} 已複製！`);
+      }
+    });
+
+    nicknameBadge.addEventListener('click', async () => {
+      const current = getMyNickname();
+      const newNick = await promptNickname({
+        title: '✏️ 修改暱稱',
+        desc: '請輸入新的顯示暱稱：',
+        defaultVal: current,
+        canCancel: true
+      });
+      if (newNick) {
+        toast(`✅ 暱稱已更新為：${newNick}`);
+      }
+    });
+
+    // Nickname Form submission & cancel
+    $('#nicknameForm').addEventListener('submit', e => {
+      e.preventDefault();
+      handleNicknameSubmit();
+    });
+    $('#btnCancelNickname').addEventListener('click', handleNicknameCancel);
+    $('#btnCloseNicknameModal').addEventListener('click', handleNicknameCancel);
+
+    // Settings Modal
+    btnSettings.addEventListener('click', () => {
+      updateNicknameUI();
+      if (currentRoom.roomId) {
+        const rEl = $('#settingsRoomDisplay');
+        if (rEl) rEl.textContent = currentRoom.roomId;
+      }
+      settingsModal.style.display = 'flex';
+    });
+    $('#btnCloseSettingsModal').addEventListener('click', () => {
+      settingsModal.style.display = 'none';
+    });
+    $('#btnSettingsEditNick').addEventListener('click', async () => {
+      settingsModal.style.display = 'none';
+      const current = getMyNickname();
+      const newNick = await promptNickname({
+        title: '✏️ 修改暱稱',
+        desc: '請輸入新的顯示暱稱：',
+        defaultVal: current,
+        canCancel: true
+      });
+      if (newNick) {
+        toast(`✅ 暱稱已更新為：${newNick}`);
+      }
+    });
+    $('#btnSettingsCopyRoom').addEventListener('click', () => {
+      if (currentRoom.roomId) {
+        copyToClipboard(currentRoom.roomId, `📋 房間代碼 ${currentRoom.roomId} 已複製！`);
+      }
+    });
+    $('#btnToolShortcuts').addEventListener('click', () => {
+      settingsModal.style.display = 'none';
+      openShortcutsModal();
+    });
+    $('#btnSettingsLeave').addEventListener('click', () => {
+      settingsModal.style.display = 'none';
+      if (confirm('確定要離開此聊天室嗎？本機金鑰將被清除。')) {
+        leaveRoom();
+      }
+    });
+
+    $('#btnBrand').addEventListener('click', () => {
+      if (currentRoom.roomId) {
+        if (confirm('確定返回首頁嗎？')) showLobby();
+      } else {
+        showLobby();
+      }
+    });
+
+    // Modal Close buttons
+    $('#btnCloseSyncModal').addEventListener('click', () => syncModal.style.display = 'none');
+    $('#btnCloseInviteModal').addEventListener('click', () => inviteModal.style.display = 'none');
+    $('#btnCloseShortcutsModal').addEventListener('click', () => shortcutsModal.style.display = 'none');
+
+    // Modal Copy buttons
+    $('#btnCopySyncLink').addEventListener('click', () => {
+      copyToClipboard($('#inputSyncLink').value, '同步連結已複製');
+    });
+    $('#btnCopyInviteLink').addEventListener('click', () => {
+      copyToClipboard($('#inputInviteLink').value, '邀請連結已複製');
+    });
+
+    const btnCopyScLink = $('#btnCopyShortcutLink');
+    if (btnCopyScLink) {
+      btnCopyScLink.addEventListener('click', () => {
+        const link = getSyncDeviceUrl();
+        copyToClipboard(link, '🔗 捷徑專屬連結已複製！貼入捷徑 link 欄位即可。');
+      });
+    }
+
+    $('#btnCopyShortcutRoomLink').addEventListener('click', () => {
+      copyToClipboard(getSyncDeviceUrl(), '房間連結已複製，請貼到捷徑中。');
+    });
+
+    // Sound Toggle
+    $('#btnToggleSound').addEventListener('click', e => {
+      isSoundEnabled = !isSoundEnabled;
+      localStorage.setItem('ren_sound', isSoundEnabled ? 'true' : 'false');
+      e.target.textContent = isSoundEnabled ? '🔊 開啟' : '🔇 靜音';
+      toast(isSoundEnabled ? '提示音已開啟' : '提示音已靜音');
+    });
+
+    // Backdrop clicks to close
+    [syncModal, inviteModal, shortcutsModal, settingsModal].forEach(modal => {
+      modal.addEventListener('click', e => {
+        if (e.target === modal) modal.style.display = 'none';
+      });
+    });
+
+    nicknameModal.addEventListener('click', e => {
+      if (e.target === nicknameModal && $('#btnCancelNickname').style.display !== 'none') {
+        handleNicknameCancel();
+      }
+    });
+
+    // Smart Scrolling & Floating Button
+    messagesBox.addEventListener('scroll', () => {
+      const distFromBottom = messagesBox.scrollHeight - messagesBox.scrollTop - messagesBox.clientHeight;
+      isUserScrolledUp = distFromBottom > 80;
+      if (!isUserScrolledUp) {
+        scrollBottomPill.classList.remove('visible');
+      }
+    });
+
+    scrollBottomPill.addEventListener('click', () => {
+      messagesBox.scrollTo({ top: messagesBox.scrollHeight, behavior: 'smooth' });
+      scrollBottomPill.classList.remove('visible');
+      isUserScrolledUp = false;
+    });
+
+    // Reset Title on Window Focus
+    window.addEventListener('focus', () => {
+      unreadCount = 0;
+      document.title = baseTitle;
+    });
+
+    // Background tab throttling handling
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        if (pollIntervalTimer) {
+          clearInterval(pollIntervalTimer);
+          pollIntervalTimer = setInterval(pollMessages, 4000);
+        }
+      } else {
+        unreadCount = 0;
+        document.title = baseTitle;
+        if (isPolling) {
+          clearInterval(pollIntervalTimer);
+          pollMessages();
+          pollIntervalTimer = setInterval(pollMessages, 1600);
+        }
+      }
+    });
+
+    // Window Hash Change
+    window.addEventListener('hashchange', async () => {
+      const parsed = parseHashParams(window.location.hash);
+      if (parsed && (!currentRoom.roomId || currentRoom.roomId !== parsed.roomId)) {
+        if (!localStorage.getItem('ren_nickname')) {
+          await promptNickname({
+            title: '👋 加入加密聊天室',
+            desc: '請設定你的暱稱以加入對話：',
+            canCancel: false
+          });
+        }
+        joinRoomFromHash();
+      }
+    });
+
+    // ============================================================
+    //  Initial Boot (Hash URL > LocalStorage > Lobby)
+    // ============================================================
+    window.addEventListener('DOMContentLoaded', async () => {
+      const hashParams = parseHashParams(window.location.hash);
+
+      let savedRoom = null;
+      try {
+        savedRoom = JSON.parse(localStorage.getItem('ren_active_room') || 'null');
+      } catch {}
+
+      const isReload = !!(savedRoom && hashParams && savedRoom.roomId === hashParams.roomId);
+      const hasSavedNickname = !!localStorage.getItem('ren_nickname');
+
+      if (hashParams) {
+        // Only ask if this is a brand new invite link AND user has never set a nickname before
+        if (!isReload && !hasSavedNickname) {
+          await promptNickname({
+            title: '👋 加入加密聊天室',
+            desc: '你收到了一個私人加密聊天室的邀請，請輸入你的暱稱以加入對話：',
+            canCancel: false
+          });
+        }
+        const joined = await joinRoomFromHash();
+        if (!joined) {
+          const restored = await restoreRoomFromStorage();
+          if (!restored) showLobby();
+        }
+      } else {
+        const joined = await restoreRoomFromStorage();
+        if (!joined) {
+          showLobby();
+        }
+      }
+    });
+  </script>
+</body>
+</html>

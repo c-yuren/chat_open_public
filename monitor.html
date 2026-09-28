@@ -1,0 +1,1992 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>系統監控中心</title>
+
+  <!-- PWA & Mobile Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#1B3C53">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ============================================================
+      深色藍灰監控介面
+       ============================================================ */
+    :root {
+      --bg-primary: #1B3C53;
+      --bg-secondary: #234C6A;
+      --bg-card: rgba(35, 76, 106, 0.82);
+      --bg-card-hover: rgba(69, 104, 130, 0.92);
+      --border: rgba(210, 193, 182, 0.18);
+      --border-glow: rgba(210, 193, 182, 0.45);
+
+      --text-primary: #F7F2EB;
+      --text-secondary: #D2C1B6;
+      --text-muted: #b6c5cf;
+
+      --accent: #D2C1B6;
+      --accent-glow: rgba(210, 193, 182, 0.3);
+      --cyan: #D2C1B6;
+      --cyan-glow: rgba(210, 193, 182, 0.28);
+      --emerald: #8B9A6E;
+      --emerald-glow: rgba(139, 154, 110, 0.3);
+      --warning: #D2C1B6;
+      --danger: #e59a91;
+
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      min-height: 100%;
+      font-family: var(--font);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* Ambient Radial Glows */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 650px 500px at 15% 10%, rgba(69, 104, 130, 0.42), transparent),
+        radial-gradient(ellipse 600px 450px at 85% 80%, rgba(210, 193, 182, 0.12), transparent),
+        radial-gradient(ellipse 500px 400px at 50% 50%, rgba(139, 154, 110, 0.08), transparent);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      width: min(100% - 40px, 1280px);
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 24px 20px 60px;
+    }
+
+    /* Top Navigation Bar */
+    .nav-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+      padding: 16px 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      margin-bottom: 24px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .brand-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #456882 0%, #D2C1B6 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 4px 14px var(--accent-glow);
+    }
+
+    .brand-title {
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .badge-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #8B9A6E;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #8B9A6E;
+      box-shadow: 0 0 10px #8B9A6E;
+      animation: pulseAnim 2s infinite;
+    }
+
+    @keyframes pulseAnim {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(139, 154, 110, 0.7); }
+      70% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(139, 154, 110, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(139, 154, 110, 0); }
+    }
+
+    .btn-nav {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s var(--ease);
+    }
+
+    .btn-nav:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #456882 0%, #234C6A 100%);
+      color: white;
+      border-color: rgba(210, 193, 182, 0.45);
+      box-shadow: 0 4px 14px rgba(210, 193, 182, 0.22);
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #456882 0%, #1B3C53 100%);
+      color: white;
+      box-shadow: 0 6px 18px rgba(210, 193, 182, 0.28);
+    }
+
+    /* Auto-refresh control */
+    .refresh-box {
+      display: inline-flex;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 2px 4px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .refresh-box select {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 6px;
+      cursor: pointer;
+      outline: none;
+    }
+
+    /* Metric Cards Grid */
+    .grid-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      transition: all 0.25s var(--ease);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-glow);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--card-accent, #D2C1B6), transparent);
+    }
+
+    .card-storage { --card-accent: #D2C1B6; }
+    .card-db { --card-accent: #8B9A6E; }
+    .card-memory { --card-accent: #456882; }
+    .card-cpu { --card-accent: #8B9A6E; }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .card-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+    }
+
+    .card-icon {
+      font-size: 18px;
+    }
+
+    .card-value {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+      font-family: var(--font-mono);
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+
+    .card-unit {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .card-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.45;
+      margin-bottom: 12px;
+    }
+
+    /* Progress & Bar Gauges */
+    .progress-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.6s var(--ease);
+    }
+
+    .fill-cyan { background: linear-gradient(90deg, #456882, #D2C1B6); box-shadow: 0 0 10px var(--cyan-glow); }
+    .fill-purple { background: linear-gradient(90deg, #8B9A6E, #D2C1B6); box-shadow: 0 0 10px var(--accent-glow); }
+    .fill-pink { background: linear-gradient(90deg, #234C6A, #456882); }
+    .fill-emerald { background: linear-gradient(90deg, #8B9A6E, #D2C1B6); box-shadow: 0 0 10px var(--emerald-glow); }
+
+    .card-meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+    }
+
+    /* Detailed Sections Layout */
+    .section-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    @media (min-width: 1120px) {
+      .grid-cards {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .room-table {
+        table-layout: fixed;
+      }
+
+      .room-table th:nth-child(1),
+      .room-table td:nth-child(1) { width: 19%; }
+      .room-table th:nth-child(2),
+      .room-table td:nth-child(2) { width: 14%; }
+      .room-table th:nth-child(3),
+      .room-table td:nth-child(3) { width: 19%; }
+      .room-table th:nth-child(4),
+      .room-table td:nth-child(4) { width: 16%; }
+      .room-table th:nth-child(5),
+      .room-table td:nth-child(5) { width: 18%; }
+      .room-table th:nth-child(6),
+      .room-table td:nth-child(6) { width: 14%; }
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        width: 100%;
+        padding: 14px 12px 36px;
+      }
+
+      .nav-bar {
+        padding: 14px;
+        border-radius: var(--radius-md);
+      }
+
+      .nav-actions {
+        width: 100%;
+      }
+
+      .nav-actions > * {
+        flex: 1 1 auto;
+      }
+
+      .section-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .detail-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+
+    .detail-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .data-table tr {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .data-table tr:last-child {
+      border-bottom: none;
+    }
+
+    .data-table td {
+      padding: 9px 0;
+    }
+
+    .data-table td:first-child {
+      color: var(--text-secondary);
+      width: 50%;
+    }
+
+    .data-table td:last-child {
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      text-align: right;
+      font-weight: 500;
+    }
+
+    /* Live Telemetry Ping Box */
+    .ping-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(6, 182, 212, 0.12);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      color: #67e8f9;
+    }
+
+    /* Spinning sync animation */
+    .spinning {
+      animation: spinAnim 0.7s linear infinite;
+    }
+    @keyframes spinAnim {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* Footer */
+    .footer-bar {
+      margin-top: 32px;
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .footer-bar a {
+      color: #D2C1B6;
+      text-decoration: none;
+    }
+    .footer-bar a:hover {
+      text-decoration: underline;
+    }
+
+    /* ============================================================
+       Admin Login Gate & Room Management Styles
+       ============================================================ */
+    .admin-gate-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(5, 5, 12, 0.88);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.3s var(--ease), visibility 0.3s;
+    }
+    .admin-gate-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .admin-card {
+      background: linear-gradient(145deg, rgba(22, 20, 36, 0.95), rgba(12, 11, 22, 0.98));
+      border: 1px solid rgba(139, 92, 246, 0.35);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 40px rgba(139, 92, 246, 0.2);
+      border-radius: var(--radius-lg);
+      max-width: 440px;
+      width: 100%;
+      padding: 32px 28px;
+      text-align: center;
+      animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes modalPop {
+      from { transform: scale(0.92); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .admin-shield-icon {
+      width: 58px;
+      height: 58px;
+      margin: 0 auto 16px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(6, 182, 212, 0.2));
+      border: 1px solid rgba(139, 92, 246, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      box-shadow: 0 8px 24px rgba(139, 92, 246, 0.25);
+    }
+    .admin-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+      letter-spacing: -0.3px;
+    }
+    .admin-desc {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 22px;
+    }
+    .admin-input-group {
+      position: relative;
+      margin-bottom: 16px;
+    }
+    .admin-input {
+      width: 100%;
+      padding: 12px 42px 12px 14px;
+      background: rgba(10, 10, 18, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius-md);
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .admin-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.25);
+    }
+    .admin-toggle-pwd {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 14px;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+    }
+    .admin-toggle-pwd:hover {
+      color: var(--text-primary);
+    }
+    .admin-btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: var(--radius-md);
+      border: none;
+      background: linear-gradient(135deg, #456882 0%, #234C6A 100%);
+      color: #fff;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.35);
+      transition: transform 0.15s, opacity 0.15s;
+    }
+    .admin-btn:hover {
+      opacity: 0.95;
+      transform: translateY(-1px);
+    }
+    .admin-btn:active {
+      transform: translateY(1px);
+    }
+    .admin-error {
+      margin-top: 12px;
+      font-size: 12px;
+      color: #f87171;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    /* Admin Navbar Badge & Logout */
+    .admin-badge-nav {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(139, 92, 246, 0.15);
+      border: 1px solid rgba(139, 92, 246, 0.35);
+      color: #c4b5fd;
+    }
+    .btn-logout {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      color: #fca5a5;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-logout:hover {
+      background: rgba(239, 68, 68, 0.25);
+      color: #fff;
+    }
+
+    /* Room Management Section */
+    .room-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      margin-bottom: 24px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    .room-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+    .room-section-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .room-toolbar {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .search-input {
+      background: rgba(10, 10, 18, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-sm);
+      padding: 6px 12px;
+      font-size: 12px;
+      color: #fff;
+      font-family: var(--font-mono);
+      width: 170px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-input:focus {
+      border-color: var(--accent);
+    }
+    .filter-chip {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-secondary);
+      border-radius: 999px;
+      padding: 4px 11px;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .filter-chip:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+    }
+    .filter-chip.active {
+      background: rgba(139, 92, 246, 0.22);
+      border-color: rgba(139, 92, 246, 0.45);
+      color: #c4b5fd;
+    }
+
+    /* Room Stat Mini Bar */
+    .room-summary-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+      margin-bottom: 18px;
+      padding: 12px 16px;
+      background: rgba(10, 10, 18, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: var(--radius-md);
+    }
+    .room-sum-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .room-sum-label {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .room-sum-val {
+      font-size: 14px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      color: var(--text-primary);
+    }
+
+    /* Room Table */
+    .table-container {
+      overflow-x: auto;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: var(--radius-md);
+      background: rgba(10, 10, 18, 0.4);
+    }
+    .room-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .room-table th {
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .room-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--text-primary);
+      vertical-align: middle;
+    }
+    .room-table tr:last-child td {
+      border-bottom: none;
+    }
+    .room-table tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .room-id-tag {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      color: #c4b5fd;
+      background: rgba(139, 92, 246, 0.12);
+      border: 1px solid rgba(139, 92, 246, 0.25);
+      padding: 3px 8px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-copy-id {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 11px;
+      transition: color 0.15s;
+    }
+    .btn-copy-id:hover {
+      color: #fff;
+    }
+    .room-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .room-status-badge.online {
+      background: rgba(16, 185, 129, 0.15);
+      color: #8B9A6E;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+    }
+    .room-status-badge.recent {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+    }
+    .room-status-badge.idle {
+      background: rgba(255, 255, 255, 0.06);
+      color: #94a3b8;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .traffic-tag {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      padding: 3px 8px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .msg-progress-box {
+      width: 110px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .msg-progress-bar {
+      height: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .msg-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #8B9A6E, #D2C1B6);
+      border-radius: 2px;
+    }
+    .btn-delete-room {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.28);
+      color: #fca5a5;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+    .btn-delete-room:hover {
+      background: rgba(239, 68, 68, 0.3);
+      color: #fff;
+      border-color: rgba(239, 68, 68, 0.5);
+      transform: translateY(-1px);
+    }
+    .table-empty {
+      text-align: center;
+      padding: 36px 20px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    /* Modal for Deletion Confirmation */
+    .confirm-modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      background: rgba(5, 5, 12, 0.82);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 1;
+      visibility: visible;
+      transition: all 0.25s var(--ease);
+    }
+    .confirm-modal-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .confirm-modal {
+      background: linear-gradient(145deg, rgba(28, 20, 24, 0.95), rgba(16, 12, 16, 0.98));
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 35px rgba(239, 68, 68, 0.25);
+      border-radius: var(--radius-lg);
+      max-width: 420px;
+      width: 100%;
+      padding: 26px 24px;
+      text-align: center;
+      animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .confirm-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+    .confirm-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    .confirm-desc {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    .confirm-room-tag {
+      font-family: var(--font-mono);
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+      padding: 4px 10px;
+      border-radius: 6px;
+      display: inline-block;
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+    .confirm-actions {
+      display: flex;
+      gap: 10px;
+    }
+    .btn-modal-cancel {
+      flex: 1;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-weight: 600;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .btn-modal-cancel:hover {
+      background: rgba(255, 255, 255, 0.14);
+    }
+    .btn-modal-delete {
+      flex: 1;
+      padding: 10px;
+      background: linear-gradient(135deg, #9b4d4d 0%, #6f3030 100%);
+      border: none;
+      border-radius: var(--radius-sm);
+      color: #fff;
+      font-weight: 600;
+      font-size: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+    }
+    .btn-modal-delete:hover {
+      opacity: 0.92;
+    }
+
+    /* Toast Notification */
+    .toast-box {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 10001;
+      background: rgba(18, 18, 28, 0.95);
+      border: 1px solid rgba(139, 92, 246, 0.4);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      border-radius: var(--radius-md);
+      padding: 12px 18px;
+      font-size: 13px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: all 0.25s var(--ease);
+    }
+    .toast-box.show {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- Top Nav -->
+    <header class="nav-bar">
+      <div class="brand-box">
+        <div>
+          <div class="brand-title">系統監控中心</div>
+          <div class="brand-sub">
+            <span>Oracle Cloud VM · Ubuntu</span>
+            <span>•</span>
+            <span id="textServerTime">伺服器時間</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-actions">
+        <div class="badge-status">
+          <div class="pulse-dot"></div>
+            <span id="badgeServiceStatus">服務運作正常</span>
+        </div>
+
+        <div class="ping-badge" id="pingBadge">
+          <span>延遲：</span>
+          <span id="textPing">-- ms</span>
+        </div>
+
+        <div class="refresh-box">
+          <span>更新間隔:</span>
+          <select id="selectInterval">
+            <option value="3000" selected>3 秒</option>
+            <option value="5000">5 秒</option>
+            <option value="10000">10 秒</option>
+            <option value="0">暫停</option>
+          </select>
+        </div>
+
+        <button class="btn-nav" id="btnManualRefresh" title="手動刷新">
+          <span id="iconRefresh">↻</span> 刷新
+        </button>
+
+        <div class="admin-badge-nav" id="adminBadge">
+          <span>管理員</span>
+        </div>
+
+        <button class="btn-logout" id="btnLogout" title="登出管理員身分">
+          登出
+        </button>
+
+        <a href="/" class="btn-nav btn-primary">
+          前往聊天室
+        </a>
+      </div>
+    </header>
+
+    <!-- KPI Metric Cards Grid -->
+    <section class="grid-cards">
+      
+      <!-- Card 1: Disk Storage -->
+      <div class="card card-storage">
+        <div class="card-header">
+          <span class="card-label">主機磁碟使用量</span>
+          <span class="card-icon">DISK</span>
+        </div>
+        <div class="card-value">
+          <span id="valDiskPercent">--</span><span class="card-unit">%</span>
+        </div>
+        <div class="card-desc" id="descDisk">
+          已使用 -- GB / 總量 -- GB
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill fill-cyan" id="barDisk" style="width: 0%;"></div>
+        </div>
+        <div class="card-meta-row">
+          <span>剩餘可用:</span>
+          <span id="valDiskFree" style="color: #38bdf8;">-- GB</span>
+        </div>
+      </div>
+
+      <!-- Card 2: SQLite DB & Capacity -->
+      <div class="card card-db">
+        <div class="card-header">
+          <span class="card-label">加密資料庫 (SQLite)</span>
+          <span class="card-icon">DB</span>
+        </div>
+        <div class="card-value">
+          <span id="valDbSize">--</span>
+        </div>
+        <div class="card-desc">
+          包含 WAL / SHM 快取 · 50則 FIFO 滾動上限
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill fill-purple" id="barDb" style="width: 15%;"></div>
+        </div>
+        <div class="card-meta-row">
+          <span>累積訊息總數:</span>
+          <span id="valTotalMessages" style="color: #c4b5fd;">-- 則</span>
+        </div>
+      </div>
+
+      <!-- Card 3: System Memory -->
+      <div class="card card-memory">
+        <div class="card-header">
+          <span class="card-label">系統 RAM 記憶體</span>
+          <span class="card-icon">RAM</span>
+        </div>
+        <div class="card-value">
+          <span id="valMemPercent">--</span><span class="card-unit">%</span>
+        </div>
+        <div class="card-desc" id="descMem">
+          已使用 -- MB / 總量 -- MB
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill fill-pink" id="barMem" style="width: 0%;"></div>
+        </div>
+        <div class="card-meta-row">
+          <span>Node 程序 RSS:</span>
+          <span id="valNodeRss" style="color: #f472b6;">-- MB</span>
+        </div>
+      </div>
+
+      <!-- Card 4: CPU & Activity -->
+      <div class="card card-cpu">
+        <div class="card-header">
+          <span class="card-label">CPU 負載與活躍狀態</span>
+          <span class="card-icon">CPU</span>
+        </div>
+        <div class="card-value">
+          <span id="valCpuLoad">--</span>
+        </div>
+        <div class="card-desc" id="descCpu">
+          1m, 5m, 15m 負載指標
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill fill-emerald" id="barCpu" style="width: 0%;"></div>
+        </div>
+        <div class="card-meta-row">
+          <span>在線房間 / 即時用戶:</span>
+          <span id="valOnlineRooms" style="color: #8B9A6E;">-- 室 / -- 人</span>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Room Management & Live Traffic Section (Admin Only) -->
+    <section class="room-section" id="roomSection">
+      <div class="room-section-header">
+        <div class="room-section-title">
+          <span>聊天室清單與流量監控</span>
+        </div>
+
+        <div class="room-toolbar">
+          <input type="text" id="inputSearchRoom" class="search-input" placeholder="搜尋房間 ID" autocomplete="off">
+          
+          <button class="filter-chip active" data-filter="all" id="filterAll">全部</button>
+          <button class="filter-chip" data-filter="online" id="filterOnline">僅在線</button>
+          <button class="filter-chip" data-filter="recent" id="filterRecent">近期活躍</button>
+          <button class="filter-chip" data-filter="idle" id="filterIdle">閒置</button>
+
+          <button class="btn-nav" id="btnRefreshRooms" title="立即刷新聊天室清單" style="padding: 6px 12px; font-size: 11px;">
+            <span id="iconRoomRefresh">↻</span> 刷新房間
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Summary Pills -->
+      <div class="room-summary-bar">
+        <div class="room-sum-item">
+          <span class="room-sum-label">已建立房間總數</span>
+          <span class="room-sum-val" id="sumTotalRooms">-- 間</span>
+        </div>
+        <div class="room-sum-item">
+          <span class="room-sum-label">目前在線活躍</span>
+          <span class="room-sum-val" style="color: #8B9A6E;" id="sumOnlineRooms">-- 室 (0人)</span>
+        </div>
+        <div class="room-sum-item">
+          <span class="room-sum-label">聊天傳輸累積總流量</span>
+          <span class="room-sum-val" style="color: #38bdf8;" id="sumTotalTraffic">--</span>
+        </div>
+        <div class="room-sum-item">
+          <span class="room-sum-label">全站累積儲存訊息</span>
+          <span class="room-sum-val" style="color: #c4b5fd;" id="sumTotalMsgs">-- 則</span>
+        </div>
+      </div>
+
+      <!-- Responsive Room Table -->
+      <div class="table-container">
+        <table class="room-table">
+          <thead>
+            <tr>
+              <th>房間識別碼 (Room ID)</th>
+              <th>即時活躍狀態</th>
+              <th>儲存訊息 (上限 50 則)</th>
+              <th>網路傳輸流量</th>
+              <th>最後活躍時間</th>
+              <th>管理操作</th>
+            </tr>
+          </thead>
+          <tbody id="roomTableBody">
+            <tr>
+              <td colspan="6" class="table-empty">
+                <div class="spinning" style="display: inline-block; font-size: 16px; margin-bottom: 6px;">↻</div>
+                <div>正在載入聊天室資料...</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Deep-Dive Details Grid -->
+    <section class="section-grid">
+      
+      <!-- Panel A: Storage & Database Health -->
+      <div class="detail-card">
+        <h3 class="detail-title">
+          <span>📊 存儲空間與資料庫明細</span>
+        </h3>
+        <table class="data-table">
+          <tr>
+            <td>主機磁碟總容量 (Total Disk)</td>
+            <td id="dtDiskTotal">-- GB</td>
+          </tr>
+          <tr>
+            <td>剩餘可用磁碟 (Free Disk)</td>
+            <td id="dtDiskFree" style="color: #38bdf8;">-- GB</td>
+          </tr>
+          <tr>
+            <td>已使用磁碟 (Used Disk)</td>
+            <td id="dtDiskUsed">-- GB</td>
+          </tr>
+          <tr>
+            <td>主資料庫檔案 (chat.db)</td>
+            <td id="dtDbFile">--</td>
+          </tr>
+          <tr>
+            <td>預寫日誌與快取 (WAL / SHM)</td>
+            <td id="dtDbWal">--</td>
+          </tr>
+          <tr>
+            <td>已建立房間總數 (Total Rooms)</td>
+            <td id="dtTotalRooms">-- 間</td>
+          </tr>
+          <tr>
+            <td>24小時活躍房間 (Active 24h)</td>
+            <td id="dtActive24h" style="color: #c4b5fd;">-- 間</td>
+          </tr>
+          <tr>
+            <td>每房訊息保留規則</td>
+            <td>嚴格 50 則 (FIFO 自動修剪)</td>
+          </tr>
+          <tr>
+            <td>閒置房間清理週期</td>
+            <td>超過 14 天無活動自動清理</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Panel B: Host System & Runtime Environment -->
+      <div class="detail-card">
+        <h3 class="detail-title">
+          <span>🖥️ 主機伺服器與執行環境</span>
+        </h3>
+        <table class="data-table">
+          <tr>
+            <td>系統連續開機時間 (Host Uptime)</td>
+            <td id="dtSysUptime" style="color: #8B9A6E;">--</td>
+          </tr>
+          <tr>
+            <td>Node 程序運行時間 (Process)</td>
+            <td id="dtProcessUptime">--</td>
+          </tr>
+          <tr>
+            <td>作業系統 (OS Platform)</td>
+            <td id="dtOs">Linux (Ubuntu)</td>
+          </tr>
+          <tr>
+            <td>主機架構 (Architecture)</td>
+            <td id="dtArch">--</td>
+          </tr>
+          <tr>
+            <td>Node.js 核心版本</td>
+            <td id="dtNodeVer">--</td>
+          </tr>
+          <tr>
+            <td>Node Heap 記憶體分配</td>
+            <td id="dtNodeHeap">-- MB / -- MB</td>
+          </tr>
+          <tr>
+            <td>CPU 核心數與型號</td>
+            <td id="dtCpuModel">--</td>
+          </tr>
+          <tr>
+            <td>端到端加密協議 (E2EE)</td>
+            <td style="color: #8B9A6E;">AES-GCM-256 (零知識)</td>
+          </tr>
+          <tr>
+            <td>傳輸層安全性 (TLS)</td>
+            <td style="color: #8B9A6E;">Let's Encrypt HTTPS / TLS 1.3</td>
+          </tr>
+        </table>
+      </div>
+
+    </section>
+
+    <!-- Shortcuts Quick Guide Integration -->
+    <section class="detail-card" style="margin-bottom: 24px; background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(6, 182, 212, 0.06) 100%);">
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;">
+        <h3 class="detail-title" style="margin-bottom: 0;">
+          <span>📲 iOS 捷徑：二合一極速整合 (單次輸入 Link 同時發送與讀取)</span>
+        </h3>
+        <span style="font-size: 11px; font-weight: 700; background: rgba(139, 92, 246, 0.25); color: #c4b5fd; padding: 3px 9px; border-radius: 999px; border: 1px solid rgba(139, 92, 246, 0.4);">
+          API: /api/shortcut
+        </span>
+      </div>
+      <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 14px;">
+        後端已全面開放統一端點 <code>https://open-shortcut-chat.duckdns.org/api/shortcut</code>！捷徑只需配置一次 <code>link</code> 變數，有輸入文字就自動<strong>加密送出</strong>；若留空或按完成，則直接<strong>解密並返回格式化好的最新訊息列表 (formattedText)</strong>，可直接彈出系統通知或彈窗！
+      </p>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <a href="/" class="btn-nav btn-primary" style="font-size: 12px;">
+          🔗 取得我的捷徑專屬連結
+        </a>
+        <a href="/api/system/status" target="_blank" class="btn-nav" style="font-size: 12px;">
+          📄 查看原始 JSON 監控數據
+        </a>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer-bar">
+      <div>雙人加密訊息系統 · 管理監控中心</div>
+      <div>Oracle Cloud VM · Nginx 反向代理 · PM2 程序管理</div>
+    </footer>
+
+  </div>
+
+  <!-- Admin Login Gate Modal Overlay -->
+  <div class="admin-gate-overlay" id="adminLoginGate">
+    <div class="admin-card">
+      <div class="admin-shield-icon">🛡️</div>
+      <h2 class="admin-title">管理員安全身分驗證</h2>
+      <p class="admin-desc">
+        系統儀表板包含主機磁碟、進程、記憶體與即時聊天室流量監控，僅限管理員存取。請輸入您的管理金鑰以解鎖。
+      </p>
+
+      <form id="adminLoginForm">
+        <div class="admin-input-group">
+          <input 
+            type="password" 
+            id="adminKeyInput" 
+            class="admin-input" 
+            placeholder="請輸入管理員金鑰 (ADMIN_KEY)..." 
+            autocomplete="current-password"
+            required
+          />
+          <button type="button" class="admin-toggle-pwd" id="btnTogglePwd" title="顯示/隱藏金鑰">👁️</button>
+        </div>
+
+        <button type="submit" class="admin-btn" id="btnAdminLogin">
+          🔐 驗證身分並解鎖監控
+        </button>
+      </form>
+
+      <div class="admin-error" id="adminLoginError">
+        <span>⚠️</span>
+        <span id="adminErrorMsg">金鑰無效，請確認後重試</span>
+      </div>
+
+      <div style="margin-top: 22px; font-size: 11px; color: var(--text-muted);">
+        雙人加密訊息系統
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="confirm-modal-overlay hidden" id="deleteModal">
+    <div class="confirm-modal">
+      <div class="confirm-icon">⚠️</div>
+      <h3 class="confirm-title">刪除聊天室</h3>
+      <p class="confirm-desc">
+        此操作會移除 SQLite 中該房間的加密訊息、活動記錄與連線狀態，資料<strong>無法復原</strong>。
+      </p>
+
+      <div class="confirm-room-tag" id="deleteTargetRoomId">r_xxxxxx</div>
+
+      <div class="confirm-actions">
+        <button class="btn-modal-cancel" id="btnCancelDelete">取消</button>
+        <button class="btn-modal-delete" id="btnConfirmDelete">確認刪除</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Box -->
+  <div class="toast-box" id="toastBox">
+    <span id="toastIcon">ℹ️</span>
+    <span id="toastMsg">通知訊息</span>
+  </div>
+
+  <script>
+    const API_URL = window.location.origin;
+    const ADMIN_STORAGE_KEY = 'ren_admin_key';
+    
+    // Check URL parameters for adminKey first
+    const urlParams = new URLSearchParams(window.location.search);
+    const queryKey = urlParams.get('adminKey') || urlParams.get('key');
+    if (queryKey) {
+      localStorage.setItem(ADMIN_STORAGE_KEY, queryKey.trim());
+      // Clean query parameter from URL without reloading
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
+    }
+
+    let currentAdminKey = localStorage.getItem(ADMIN_STORAGE_KEY) || '';
+    let timer = null;
+    let refreshIntervalMs = 3000;
+    let isFetchingStatus = false;
+    let isFetchingRooms = false;
+    let allRooms = [];
+    let currentFilter = 'all';
+    let searchQuery = '';
+    let deletingRoomId = null;
+    let toastTimeout = null;
+
+    // DOM Elements
+    const $ = id => document.getElementById(id);
+    const adminLoginGate = $('adminLoginGate');
+    const adminLoginForm = $('adminLoginForm');
+    const adminKeyInput = $('adminKeyInput');
+    const btnTogglePwd = $('btnTogglePwd');
+    const adminLoginError = $('adminLoginError');
+    const adminErrorMsg = $('adminErrorMsg');
+    const btnAdminLogin = $('btnAdminLogin');
+    const btnLogout = $('btnLogout');
+
+    const badgeServiceStatus = $('badgeServiceStatus');
+    const textPing = $('textPing');
+    const textServerTime = $('textServerTime');
+    const selectInterval = $('selectInterval');
+    const btnManualRefresh = $('btnManualRefresh');
+    const iconRefresh = $('iconRefresh');
+
+    // KPI
+    const valDiskPercent = $('valDiskPercent');
+    const descDisk = $('descDisk');
+    const barDisk = $('barDisk');
+    const valDiskFree = $('valDiskFree');
+
+    const valDbSize = $('valDbSize');
+    const valTotalMessages = $('valTotalMessages');
+
+    const valMemPercent = $('valMemPercent');
+    const descMem = $('descMem');
+    const barMem = $('barMem');
+    const valNodeRss = $('valNodeRss');
+
+    const valCpuLoad = $('valCpuLoad');
+    const descCpu = $('descCpu');
+    const barCpu = $('barCpu');
+    const valOnlineRooms = $('valOnlineRooms');
+
+    // Details
+    const dtDiskTotal = $('dtDiskTotal');
+    const dtDiskFree = $('dtDiskFree');
+    const dtDiskUsed = $('dtDiskUsed');
+    const dtDbFile = $('dtDbFile');
+    const dtDbWal = $('dtDbWal');
+    const dtTotalRooms = $('dtTotalRooms');
+    const dtActive24h = $('dtActive24h');
+
+    const dtSysUptime = $('dtSysUptime');
+    const dtProcessUptime = $('dtProcessUptime');
+    const dtOs = $('dtOs');
+    const dtArch = $('dtArch');
+    const dtNodeVer = $('dtNodeVer');
+    const dtNodeHeap = $('dtNodeHeap');
+    const dtCpuModel = $('dtCpuModel');
+
+    // Room Management Elements
+    const inputSearchRoom = $('inputSearchRoom');
+    const btnRefreshRooms = $('btnRefreshRooms');
+    const iconRoomRefresh = $('iconRoomRefresh');
+    const roomTableBody = $('roomTableBody');
+    const sumTotalRooms = $('sumTotalRooms');
+    const sumOnlineRooms = $('sumOnlineRooms');
+    const sumTotalTraffic = $('sumTotalTraffic');
+    const sumTotalMsgs = $('sumTotalMsgs');
+
+    // Delete Modal Elements
+    const deleteModal = $('deleteModal');
+    const deleteTargetRoomId = $('deleteTargetRoomId');
+    const btnCancelDelete = $('btnCancelDelete');
+    const btnConfirmDelete = $('btnConfirmDelete');
+
+    // Toast Elements
+    const toastBox = $('toastBox');
+    const toastMsg = $('toastMsg');
+    const toastIcon = $('toastIcon');
+
+    // ============================================================
+    //  Admin Auth Utilities
+    // ============================================================
+    function getAuthHeaders() {
+      return currentAdminKey ? { 'Authorization': `Bearer ${currentAdminKey}` } : {};
+    }
+
+    function showLoginGate(msg = '') {
+      adminLoginGate.classList.remove('hidden');
+      if (msg) {
+        adminErrorMsg.textContent = msg;
+        adminLoginError.style.display = 'flex';
+      } else {
+        adminLoginError.style.display = 'none';
+      }
+      adminKeyInput.value = '';
+      setTimeout(() => adminKeyInput.focus(), 150);
+      if (timer) clearInterval(timer);
+    }
+
+    function hideLoginGate() {
+      adminLoginGate.classList.add('hidden');
+      adminLoginError.style.display = 'none';
+    }
+
+    async function verifyKey(key) {
+      if (!key) return false;
+      try {
+        const res = await fetch(`${API_URL}/api/admin/verify`, {
+          headers: { 'Authorization': `Bearer ${key}` }
+        });
+        return res.ok;
+      } catch (err) {
+        return false;
+      }
+    }
+
+    async function handleLoginSubmit(e) {
+      if (e) e.preventDefault();
+      const inputKey = adminKeyInput.value.trim();
+      if (!inputKey) {
+        showLoginGate('請輸入管理員金鑰');
+        return;
+      }
+
+      btnAdminLogin.disabled = true;
+      btnAdminLogin.textContent = '驗證中...';
+
+      const isValid = await verifyKey(inputKey);
+      btnAdminLogin.disabled = false;
+      btnAdminLogin.textContent = '🔐 驗證身分並解鎖監控';
+
+      if (isValid) {
+        currentAdminKey = inputKey;
+        localStorage.setItem(ADMIN_STORAGE_KEY, inputKey);
+        hideLoginGate();
+        showToast('管理員身分驗證成功', '👑');
+        fetchAll();
+        setupAutoRefresh();
+      } else {
+        adminErrorMsg.textContent = '金鑰無效或權限不足，請重新確認';
+        adminLoginError.style.display = 'flex';
+        adminKeyInput.select();
+      }
+    }
+
+    function handleLogout() {
+      currentAdminKey = '';
+      localStorage.removeItem(ADMIN_STORAGE_KEY);
+      allRooms = [];
+      renderRoomTable();
+      showToast('已安全登出管理員身分', '🚪');
+      showLoginGate();
+    }
+
+    // Toggle password visibility
+    btnTogglePwd.addEventListener('click', () => {
+      if (adminKeyInput.type === 'password') {
+        adminKeyInput.type = 'text';
+        btnTogglePwd.textContent = '🙈';
+      } else {
+        adminKeyInput.type = 'password';
+        btnTogglePwd.textContent = '👁️';
+      }
+    });
+
+    adminLoginForm.addEventListener('submit', handleLoginSubmit);
+    btnLogout.addEventListener('click', handleLogout);
+
+    // ============================================================
+    //  System Status Fetcher
+    // ============================================================
+    async function fetchStatus() {
+      if (isFetchingStatus) return;
+      if (!currentAdminKey) {
+        showLoginGate();
+        return;
+      }
+
+      isFetchingStatus = true;
+      iconRefresh.classList.add('spinning');
+      const startTime = performance.now();
+
+      try {
+        const res = await fetch(`${API_URL}/api/system/status`, {
+          headers: getAuthHeaders()
+        });
+
+        if (res.status === 401) {
+          handleLogout();
+          return;
+        }
+
+        const latency = Math.round(performance.now() - startTime);
+        textPing.textContent = `${latency} ms`;
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        renderStatusData(data);
+      } catch (err) {
+        console.error('Fetch status failed:', err);
+        badgeServiceStatus.textContent = 'CONNECTIVITY WARNING';
+        badgeServiceStatus.parentElement.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+        badgeServiceStatus.parentElement.style.color = '#ef4444';
+      } finally {
+        isFetchingStatus = false;
+        iconRefresh.classList.remove('spinning');
+      }
+    }
+
+    function renderStatusData(d) {
+      if (!d || !d.ok) return;
+
+      // Clock
+      const date = new Date(d.system.serverTime || Date.now());
+      textServerTime.textContent = date.toLocaleTimeString('zh-TW', { hour12: false });
+
+      // 1. Disk
+      const disk = d.storage.disk;
+      valDiskPercent.textContent = disk.usedPercent;
+      descDisk.textContent = `已使用 ${disk.usedGB} GB / 總量 ${disk.totalGB} GB`;
+      barDisk.style.width = `${Math.min(100, disk.usedPercent)}%`;
+      valDiskFree.textContent = `${disk.freeGB} GB`;
+
+      dtDiskTotal.textContent = `${disk.totalGB} GB`;
+      dtDiskFree.textContent = `${disk.freeGB} GB`;
+      dtDiskUsed.textContent = `${disk.usedGB} GB (${disk.usedPercent}%)`;
+
+      // 2. DB
+      const db = d.storage.database;
+      valDbSize.textContent = db.totalSizeFormatted;
+      valTotalMessages.textContent = `${db.totalMessages} 則`;
+
+      dtDbFile.textContent = formatBytes(db.dbSizeBytes);
+      dtDbWal.textContent = `${formatBytes(db.walSizeBytes)} / ${formatBytes(db.shmSizeBytes)}`;
+      dtTotalRooms.textContent = `${db.totalRooms} 間`;
+      dtActive24h.textContent = `${db.activeRooms24h} 間 (1h內: ${db.activeRooms1h})`;
+
+      // 3. Memory
+      const mem = d.performance.memory;
+      valMemPercent.textContent = mem.usedPercent;
+      descMem.textContent = `已使用 ${mem.usedMB} MB / 總量 ${mem.totalMB} MB`;
+      barMem.style.width = `${Math.min(100, mem.usedPercent)}%`;
+      valNodeRss.textContent = `${mem.processRssMB} MB`;
+
+      dtNodeHeap.textContent = `${mem.processHeapUsedMB} MB / ${mem.processHeapTotalMB} MB`;
+
+      // 4. CPU & Activity
+      const cpu = d.performance.cpu;
+      const loadStr = cpu.loadAvg ? cpu.loadAvg.join(', ') : '--';
+      valCpuLoad.textContent = cpu.loadAvg ? cpu.loadAvg[0] : '--';
+      descCpu.textContent = `負載平均: [${loadStr}] (${cpu.cores} Cores)`;
+      barCpu.style.width = `${Math.min(100, cpu.loadPercent || 5)}%`;
+
+      valOnlineRooms.textContent = `${d.activity.onlineRoomsNow} 室 / ${d.activity.onlineUsersNow} 人`;
+
+      // 5. Host specs
+      dtSysUptime.textContent = d.system.uptimeFormatted;
+      dtProcessUptime.textContent = d.system.processUptimeFormatted;
+      dtOs.textContent = `${d.system.platform} (${d.system.release})`;
+      dtArch.textContent = d.system.arch;
+      dtNodeVer.textContent = d.system.nodeVersion;
+      dtCpuModel.textContent = `${cpu.cores} × ${cpu.model}`;
+    }
+
+    // ============================================================
+    //  Room Management Fetcher & Renderer
+    // ============================================================
+    async function fetchRooms() {
+      if (isFetchingRooms) return;
+      if (!currentAdminKey) return;
+
+      isFetchingRooms = true;
+      iconRoomRefresh.classList.add('spinning');
+
+      try {
+        const res = await fetch(`${API_URL}/api/admin/rooms`, {
+          headers: getAuthHeaders()
+        });
+
+        if (res.status === 401) {
+          handleLogout();
+          return;
+        }
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        
+        allRooms = data.rooms || [];
+
+        // Update summaries
+        sumTotalRooms.textContent = `${data.count || 0} 間`;
+        const onlineCount = data.onlineRoomsCount || 0;
+        const onlineUsers = allRooms.reduce((acc, r) => acc + (r.activeUsers || 0), 0);
+        sumOnlineRooms.textContent = `${onlineCount} 室 (${onlineUsers}人)`;
+        sumTotalTraffic.textContent = data.totalTrafficFormatted || '0 B';
+
+        const totalMsgs = allRooms.reduce((acc, r) => acc + (r.messageCount || 0), 0);
+        sumTotalMsgs.textContent = `${totalMsgs} 則`;
+
+        renderRoomTable();
+      } catch (err) {
+        console.error('Fetch rooms failed:', err);
+      } finally {
+        isFetchingRooms = false;
+        iconRoomRefresh.classList.remove('spinning');
+      }
+    }
+
+    function renderRoomTable() {
+      if (!roomTableBody) return;
+
+      // Filter rooms
+      let filtered = allRooms.slice();
+
+      if (currentFilter === 'online') {
+        filtered = filtered.filter(r => r.isOnline);
+      } else if (currentFilter === 'recent') {
+        filtered = filtered.filter(r => r.status === 'recent');
+      } else if (currentFilter === 'idle') {
+        filtered = filtered.filter(r => r.status === 'idle');
+      }
+
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        filtered = filtered.filter(r => r.id.toLowerCase().includes(q));
+      }
+
+      if (filtered.length === 0) {
+        roomTableBody.innerHTML = `
+          <tr>
+            <td colspan="6" class="table-empty">
+              <div style="font-size: 24px; margin-bottom: 6px;">🔍</div>
+              <div>未找到符合條件的房間</div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      let html = '';
+      for (const r of filtered) {
+        // Status badge
+        let statusBadgeClass = 'idle';
+        if (r.isOnline) statusBadgeClass = 'online';
+        else if (r.status === 'recent') statusBadgeClass = 'recent';
+
+        // Message Progress
+        const pct = Math.min(100, Math.round((r.messageCount / r.maxMessages) * 100));
+
+        // Format dates
+        const lastActiveDate = new Date(r.lastActive);
+        const lastActiveStr = isNaN(lastActiveDate.getTime()) 
+          ? '--' 
+          : `${lastActiveDate.toLocaleDateString('zh-TW', { month: '2-digit', day: '2-digit' })} ${lastActiveDate.toLocaleTimeString('zh-TW', { hour12: false, hour: '2-digit', minute: '2-digit' })}`;
+
+        html += `
+          <tr>
+            <td>
+              <div class="room-id-tag">
+                <span>${escapeHtml(r.id)}</span>
+                <button class="btn-copy-id" title="複製房間 ID" onclick="copyText('${escapeHtml(r.id)}', '已複製房間 ID')">📋</button>
+              </div>
+            </td>
+            <td>
+              <span class="room-status-badge ${statusBadgeClass}">
+                ${escapeHtml(r.statusLabel)}
+              </span>
+            </td>
+            <td>
+              <div class="msg-progress-box">
+                <div style="font-family: var(--font-mono); font-size: 11px; display: flex; justify-content: space-between;">
+                  <span>${r.messageCount} / ${r.maxMessages} 則</span>
+                  <span style="color: var(--text-muted);">${r.storedBytesFormatted}</span>
+                </div>
+                <div class="msg-progress-bar">
+                  <div class="msg-progress-fill" style="width: ${pct}%;"></div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="traffic-tag">
+                <span>📊</span>
+                <span>${r.trafficBytesFormatted}</span>
+              </span>
+            </td>
+            <td style="font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary);">
+              <div>${lastActiveStr}</div>
+              <div style="font-size: 10px; color: var(--text-muted);">${formatRelativeTime(r.diffMinutes)}</div>
+            </td>
+            <td>
+              <button class="btn-delete-room" onclick="promptDeleteRoom('${escapeHtml(r.id)}')">
+                <span>🗑️</span>
+                <span>刪除</span>
+              </button>
+            </td>
+          </tr>
+        `;
+      }
+
+      roomTableBody.innerHTML = html;
+    }
+
+    // Filter Chips
+    document.querySelectorAll('.filter-chip').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter || 'all';
+        renderRoomTable();
+      });
+    });
+
+    // Search Box
+    inputSearchRoom.addEventListener('input', e => {
+      searchQuery = e.target.value.trim();
+      renderRoomTable();
+    });
+
+    btnRefreshRooms.addEventListener('click', fetchRooms);
+
+    // ============================================================
+    //  Room Deletion Modal & API
+    // ============================================================
+    function promptDeleteRoom(roomId) {
+      deletingRoomId = roomId;
+      deleteTargetRoomId.textContent = roomId;
+      deleteModal.classList.remove('hidden');
+    }
+
+    function closeDeleteModal() {
+      deletingRoomId = null;
+      deleteModal.classList.add('hidden');
+    }
+
+    btnCancelDelete.addEventListener('click', closeDeleteModal);
+
+    btnConfirmDelete.addEventListener('click', async () => {
+      if (!deletingRoomId) return;
+
+      btnConfirmDelete.disabled = true;
+      btnConfirmDelete.textContent = '銷毀中...';
+
+      try {
+        const res = await fetch(`${API_URL}/api/admin/rooms/${encodeURIComponent(deletingRoomId)}`, {
+          method: 'DELETE',
+          headers: getAuthHeaders()
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          showToast(`房間 ${deletingRoomId} 已刪除`, '');
+          closeDeleteModal();
+          fetchRooms();
+          fetchStatus();
+        } else {
+          showToast(`刪除失敗: ${data.error || '未知錯誤'}`, '❌');
+        }
+      } catch (err) {
+        showToast(`刪除請求失敗: ${err.message}`, '❌');
+      } finally {
+        btnConfirmDelete.disabled = false;
+        btnConfirmDelete.textContent = '確認刪除';
+      }
+    });
+
+    // Close modal on Escape
+    window.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeDeleteModal();
+    });
+
+    // ============================================================
+    //  Helper Utilities
+    // ============================================================
+    function fetchAll() {
+      fetchStatus();
+      fetchRooms();
+    }
+
+    function formatBytes(bytes) {
+      if (!bytes || bytes <= 0) return '0 B';
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+      return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+    }
+
+    function formatRelativeTime(diffMinutes) {
+      if (diffMinutes === undefined || diffMinutes === null || isNaN(diffMinutes)) return '';
+      if (diffMinutes < 1) return '剛剛';
+      if (diffMinutes < 60) return `${diffMinutes} 分鐘前`;
+      const hours = Math.floor(diffMinutes / 60);
+      if (hours < 24) return `${hours} 小時前`;
+      const days = Math.floor(hours / 24);
+      return `${days} 天前`;
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function copyText(text, successMsg) {
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(() => {
+        showToast(successMsg || '已複製至剪貼簿', '📋');
+      }).catch(() => {
+        showToast('複製失敗', '⚠️');
+      });
+    }
+
+    function showToast(msg, icon = 'ℹ️') {
+      toastMsg.textContent = msg;
+      toastIcon.textContent = icon;
+      toastBox.classList.add('show');
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toastBox.classList.remove('show');
+      }, 3200);
+    }
+
+    function setupAutoRefresh() {
+      if (timer) clearInterval(timer);
+      if (refreshIntervalMs > 0) {
+        timer = setInterval(fetchAll, refreshIntervalMs);
+      }
+    }
+
+    selectInterval.addEventListener('change', e => {
+      refreshIntervalMs = parseInt(e.target.value, 10);
+      setupAutoRefresh();
+    });
+
+    btnManualRefresh.addEventListener('click', fetchAll);
+
+    // ============================================================
+    //  Initial Verification & Bootstrapping
+    // ============================================================
+    async function init() {
+      if (!currentAdminKey) {
+        showLoginGate();
+        return;
+      }
+
+      // Verify stored key
+      const isValid = await verifyKey(currentAdminKey);
+      if (isValid) {
+        hideLoginGate();
+        fetchAll();
+        setupAutoRefresh();
+      } else {
+        localStorage.removeItem(ADMIN_STORAGE_KEY);
+        currentAdminKey = '';
+        showLoginGate('金鑰憑證已失效或已更換，請重新輸入');
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

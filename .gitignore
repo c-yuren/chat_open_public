@@ -1,0 +1,13 @@
+node_modules/
+.env
+backend/.env
+ORACLE_CONFIG.md
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.log
+IMG_*.png
+__pycache__/
+.DS_Store
+Thumbs.db
