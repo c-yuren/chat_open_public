@@ -860,31 +860,22 @@ function handleShortcutRead(req, res, returnUnifiedObject = false) {
       const parsedUser = (parsed.user && typeof parsed.user === "string") ? parsed.user.trim() : null;
       const readerNameTrimmed = readerName ? readerName.trim() : null;
 
-      // 核心規則：如果名字一樣就代表是同個人不同裝置！
+      // 判斷是否為自己
       let isSelf = false;
-      if (parsedUser && readerNameTrimmed) {
-        if (parsedUser.toLowerCase() === readerNameTrimmed.toLowerCase()) {
-          isSelf = true; // 名字相同 = 同一個人不同裝置（我）！
-        } else {
-          isSelf = false; // 名字不同 = 對方！
-        }
-      } else {
-        isSelf = row.sender === slotNum;
+      if (row.sender === slotNum) {
+        isSelf = true;
+      } else if (parsedUser && readerNameTrimmed && parsedUser.toLowerCase() === readerNameTrimmed.toLowerCase()) {
+        isSelf = true;
       }
 
+      // 直接顯示名稱：過去訊息依照當初名稱，改名只影響未來訊息
       let displayName = "";
-      if (isSelf) {
-        displayName = "我";
+      if (parsedUser && parsedUser !== "Partner" && parsedUser !== "Creator" && parsedUser !== "You" && parsedUser !== "成員 1" && parsedUser !== "成員 2") {
+        displayName = parsedUser;
       } else {
         const peerSlot = slotNum === 1 ? 2 : 1;
         const knownPeerNick = peerSlot === 1 ? slot1Name : slot2Name;
-        if (parsedUser && parsedUser !== "Partner" && parsedUser !== "Creator" && parsedUser !== "You" && parsedUser !== "我" && parsedUser !== "成員 1" && parsedUser !== "成員 2" && parsedUser !== "對方") {
-          displayName = parsedUser;
-        } else if (knownPeerNick) {
-          displayName = knownPeerNick;
-        } else {
-          displayName = "對方";
-        }
+        displayName = isSelf ? (readerNameTrimmed || "我") : (knownPeerNick || "對方");
       }
 
       decryptedMessages.push({
